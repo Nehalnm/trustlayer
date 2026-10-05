@@ -1,4 +1,5 @@
 import PayPalCheckout from "@/components/PayPalCheckout";
+import ContractBuilder from "@/components/ContractBuilder";
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#f8fafc] text-slate-900">
@@ -136,6 +137,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <ContractBuilder />
 
       {/* Features */}
       <section className="border-t border-slate-200 bg-white px-8 py-20">
