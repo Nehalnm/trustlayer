@@ -1,3 +1,4 @@
+import PayPalCheckout from "@/components/PayPalCheckout";
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#f8fafc] text-slate-900">
@@ -44,6 +45,19 @@ export default function Home() {
             <button className="rounded-xl border border-slate-300 bg-white px-6 py-3.5 font-semibold text-slate-700 hover:bg-slate-50">
               See How It Works
             </button>
+          </div>
+          <div className="mt-8 max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm font-medium text-slate-500">
+              Sandbox payment test
+            </p>
+
+            <p className="mt-1 text-xl font-bold">Protect $9.99</p>
+
+            <p className="mt-2 mb-5 text-sm text-slate-500">
+              Test the TrustLayer payment flow using PayPal Sandbox.
+            </p>
+
+            <PayPalCheckout />
           </div>
         </div>
 
