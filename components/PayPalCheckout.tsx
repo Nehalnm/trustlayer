@@ -12,6 +12,10 @@ import {
   usePayPalCardFieldsOneTimePaymentSession,
 } from "@paypal/react-paypal-js/sdk-v6";
 
+type PayPalCheckoutProps = {
+  milestoneId: string;
+};
+
 async function getClientToken(): Promise<string> {
   const response = await fetch("/api/paypal/client-token");
 
@@ -28,41 +32,45 @@ async function getClientToken(): Promise<string> {
   return data.accessToken;
 }
 
-async function createOrder(): Promise<string> {
-  const response = await fetch("/api/orders", {
+async function createMilestoneOrder(milestoneId: string): Promise<string> {
+  const response = await fetch(`/api/milestone/${milestoneId}/order`, {
     method: "POST",
   });
 
+  const data = await response.json().catch(() => null);
+
   if (!response.ok) {
-    throw new Error("Failed to create PayPal order");
+    throw new Error(data?.error || "Failed to create milestone payment");
   }
 
-  const data = await response.json();
-
-  if (!data.id) {
+  if (!data?.id) {
     throw new Error("PayPal order ID was not returned");
   }
 
-  console.log("PayPal order created:", data.id);
+  console.log("Milestone PayPal order created:", data.id);
 
   return data.id;
 }
 
-async function captureOrder(orderId: string) {
-  const response = await fetch(`/api/orders/${orderId}/capture`, {
+async function authorizeMilestonePayment(milestoneId: string) {
+  const response = await fetch(`/api/milestone/${milestoneId}/authorize`, {
     method: "POST",
   });
 
+  const data = await response.json().catch(() => null);
+
   if (!response.ok) {
-    throw new Error("Failed to capture PayPal order");
+    throw new Error(data?.error || "Failed to authorize milestone payment");
   }
 
-  return response.json();
+  return data;
 }
 
-function CardFieldsForm() {
+function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
   const [error, setError] = useState<string | null>(null);
-  const [paymentComplete, setPaymentComplete] = useState(false);
+
+  const [paymentProtected, setPaymentProtected] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { error: cardFieldsError } = usePayPalCardFields();
@@ -97,23 +105,23 @@ function CardFieldsForm() {
 
     console.log("PayPal Card Fields response:", submitResponse);
 
-    const { orderId, message } = submitResponse.data;
+    const message = submitResponse.data?.message;
 
     if (submitResponse.state === "succeeded") {
-      captureOrder(orderId)
-        .then(() => {
-          console.log("PayPal order captured:", orderId);
+      authorizeMilestonePayment(milestoneId)
+        .then((authorization) => {
+          console.log("Milestone payment authorized:", authorization);
 
-          setPaymentComplete(true);
+          setPaymentProtected(true);
           setIsSubmitting(false);
         })
-        .catch((captureError) => {
-          console.error("PayPal capture error:", captureError);
+        .catch((authorizationError) => {
+          console.error("Milestone authorization error:", authorizationError);
 
           setError(
-            captureError instanceof Error
-              ? captureError.message
-              : "Payment capture failed.",
+            authorizationError instanceof Error
+              ? authorizationError.message
+              : "Payment authorization failed.",
           );
 
           setIsSubmitting(false);
@@ -127,14 +135,14 @@ function CardFieldsForm() {
 
       setIsSubmitting(false);
     }
-  }, [submitResponse]);
+  }, [submitResponse, milestoneId]);
 
   const handleSubmit = async () => {
     try {
       setError(null);
       setIsSubmitting(true);
 
-      const orderId = await createOrder();
+      const orderId = await createMilestoneOrder(milestoneId);
 
       await submit(orderId, {
         billingAddress: {
@@ -158,10 +166,15 @@ function CardFieldsForm() {
     }
   };
 
-  if (paymentComplete) {
+  if (paymentProtected) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 font-medium text-emerald-700">
-        ✓ Payment successful! Your milestone is now protected.
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+        <p className="font-semibold text-emerald-900">✓ Payment protected</p>
+
+        <p className="mt-1 text-sm text-emerald-800">
+          This milestone is funded and the payment is authorized until the
+          submitted work is verified.
+        </p>
       </div>
     );
   }
@@ -169,7 +182,7 @@ function CardFieldsForm() {
   return (
     <div className="space-y-4">
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">
+        <label className="mb-2 block text-sm font-semibold text-slate-800">
           Card number
         </label>
 
@@ -186,7 +199,7 @@ function CardFieldsForm() {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">
+          <label className="mb-2 block text-sm font-semibold text-slate-800">
             Expiry
           </label>
 
@@ -202,7 +215,7 @@ function CardFieldsForm() {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-slate-700">
+          <label className="mb-2 block text-sm font-semibold text-slate-800">
             CVV
           </label>
 
@@ -224,11 +237,11 @@ function CardFieldsForm() {
         disabled={isSubmitting || !!cardFieldsError}
         className="w-full rounded-xl bg-blue-600 px-5 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isSubmitting ? "Processing..." : "Pay $9.99"}
+        {isSubmitting ? "Protecting payment..." : "Protect milestone payment"}
       </button>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           <p className="font-semibold">Payment error</p>
 
           <p className="mt-1">{error}</p>
@@ -238,8 +251,9 @@ function CardFieldsForm() {
   );
 }
 
-export default function PayPalCheckout() {
+export default function PayPalCheckout({ milestoneId }: PayPalCheckoutProps) {
   const [clientToken, setClientToken] = useState<string | null>(null);
+
   const [tokenError, setTokenError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -258,7 +272,7 @@ export default function PayPalCheckout() {
 
   if (tokenError) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
         <p className="font-semibold">PayPal initialization failed</p>
 
         <p className="mt-1">{tokenError}</p>
@@ -268,7 +282,7 @@ export default function PayPalCheckout() {
 
   if (!clientToken) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-700">
         Loading secure PayPal checkout...
       </div>
     );
@@ -284,11 +298,11 @@ export default function PayPalCheckout() {
     >
       <PayPalCardFieldsProvider
         amount={{
-          value: "9.99",
+          value: "0.00",
           currencyCode: "USD",
         }}
       >
-        <CardFieldsForm />
+        <CardFieldsForm milestoneId={milestoneId} />
       </PayPalCardFieldsProvider>
     </PayPalProvider>
   );
