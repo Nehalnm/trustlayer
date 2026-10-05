@@ -71,11 +71,14 @@ export async function POST(
       );
     }
 
-    if (milestone.status !== "FUNDED") {
+    if (
+      milestone.status !== "FUNDED" &&
+      milestone.status !== "REVISION_REQUIRED"
+    ) {
       return NextResponse.json(
         {
           error:
-            "Work can only be submitted after the milestone payment has been protected.",
+            "Work can only be submitted when the milestone is funded or requires revision.",
         },
         { status: 409 },
       );

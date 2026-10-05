@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
-import VerifyMilestone from "@/components/VerifyMilestone";
+
+import EvaluationResult from "@/components/EvaluationResult";
 import MilestoneSubmission from "@/components/MilestoneSubmission";
 import PayPalCheckout from "@/components/PayPalCheckout";
-import { createAdminClient } from "@/lib/supabase/admin";
 import ReleasePayment from "@/components/ReleasePayment";
+import VerifyMilestone from "@/components/VerifyMilestone";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type PageProps = {
   params: Promise<{
@@ -140,8 +142,8 @@ export default async function ProjectPage({ params }: PageProps) {
     .filter(
       (milestone) =>
         milestone.status === "FUNDED" ||
-        milestone.status === "PAID" ||
-        milestone.status === "APPROVED",
+        milestone.status === "APPROVED" ||
+        milestone.status === "PAID",
     )
     .reduce((sum, milestone) => sum + Number(milestone.amount ?? 0), 0);
 
@@ -310,6 +312,13 @@ export default async function ProjectPage({ params }: PageProps) {
             {projectMilestones.map((milestone, index) => {
               const criteria = getCriteria(milestone.acceptance_criteria);
 
+              const showEvaluation = [
+                "REVISION_REQUIRED",
+                "APPROVED",
+                "PAID",
+                "DISPUTED",
+              ].includes(milestone.status);
+
               return (
                 <div
                   key={milestone.id}
@@ -450,15 +459,20 @@ export default async function ProjectPage({ params }: PageProps) {
 
                   {/* Revision required */}
                   {milestone.status === "REVISION_REQUIRED" && (
-                    <div className="mt-7 rounded-xl border border-orange-200 bg-orange-50 px-5 py-4">
-                      <p className="font-semibold text-orange-900">
-                        Revision required
-                      </p>
+                    <div className="mt-7">
+                      <div className="rounded-xl border border-orange-200 bg-orange-50 px-5 py-4">
+                        <p className="font-semibold text-orange-900">
+                          ⚠ Revision required
+                        </p>
 
-                      <p className="mt-1 text-sm leading-6 text-orange-800">
-                        The submitted work did not satisfy all required
-                        criteria. A revised submission is needed.
-                      </p>
+                        <p className="mt-1 text-sm leading-6 text-orange-800">
+                          The AI verifier found that one or more acceptance
+                          criteria were not satisfied. Revise the deliverable
+                          and submit a new version.
+                        </p>
+                      </div>
+
+                      <MilestoneSubmission milestoneId={milestone.id} />
                     </div>
                   )}
 
@@ -507,6 +521,11 @@ export default async function ProjectPage({ params }: PageProps) {
                         payment can be released.
                       </p>
                     </div>
+                  )}
+
+                  {/* Saved AI evaluation */}
+                  {showEvaluation && (
+                    <EvaluationResult milestoneId={milestone.id} />
                   )}
                 </div>
               );
