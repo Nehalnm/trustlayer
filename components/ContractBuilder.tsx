@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Milestone = {
   title: string;
@@ -21,6 +22,8 @@ type Contract = {
 };
 
 export default function ContractBuilder() {
+  const router = useRouter();
+
   const [description, setDescription] = useState("");
   const [contract, setContract] = useState<Contract | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,6 +57,10 @@ export default function ContractBuilder() {
       }
 
       setContract(data.contract);
+
+      if (data.projectId) {
+        router.push(`/project/${data.projectId}`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -63,16 +70,17 @@ export default function ContractBuilder() {
 
   return (
     <section className="mx-auto max-w-6xl px-8 py-20">
+      {/* Heading */}
       <div className="max-w-2xl">
-        <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
+        <p className="text-sm font-semibold uppercase tracking-wider text-blue-700">
           AI Contract Agent
         </p>
 
-        <h2 className="mt-3 text-3xl font-bold tracking-tight">
+        <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
           Describe the work. Let AI structure the agreement.
         </h2>
 
-        <p className="mt-4 leading-7 text-slate-600">
+        <p className="mt-4 leading-7 text-slate-700">
           TrustLayer turns a natural-language freelance request into measurable
           milestones, deadlines, and acceptance criteria.
         </p>
@@ -81,7 +89,7 @@ export default function ContractBuilder() {
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         {/* Input */}
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <label className="text-sm font-semibold text-slate-700">
+          <label className="text-sm font-semibold text-slate-800">
             Describe your project
           </label>
 
@@ -89,7 +97,7 @@ export default function ContractBuilder() {
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             placeholder="Example: I need a responsive landing page for my startup. Budget is $300 and I need it within 5 days..."
-            className="mt-3 min-h-64 w-full resize-none rounded-2xl border border-slate-300 p-4 text-sm leading-6 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="mt-3 min-h-64 w-full resize-none rounded-2xl border border-slate-300 bg-white p-4 text-sm leading-6 text-slate-800 placeholder:text-slate-500 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
 
           <button
@@ -104,20 +112,20 @@ export default function ContractBuilder() {
           </button>
 
           {error && (
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">
               {error}
             </div>
           )}
         </div>
 
-        {/* Result */}
+        {/* Preview */}
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           {!contract && !loading && (
-            <div className="flex min-h-96 items-center justify-center text-center text-slate-400">
+            <div className="flex min-h-96 items-center justify-center text-center text-slate-600">
               <div>
-                <div className="text-4xl">✦</div>
+                <div className="text-4xl text-blue-600">✦</div>
 
-                <p className="mt-3 font-medium">
+                <p className="mt-3 font-medium text-slate-700">
                   Your AI-generated agreement will appear here.
                 </p>
               </div>
@@ -129,11 +137,11 @@ export default function ContractBuilder() {
               <div>
                 <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
 
-                <p className="mt-4 font-medium text-slate-700">
+                <p className="mt-4 font-medium text-slate-800">
                   Analyzing scope, budget and requirements...
                 </p>
 
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-slate-600">
                   Detecting milestones and ambiguities
                 </p>
               </div>
@@ -142,45 +150,52 @@ export default function ContractBuilder() {
 
           {contract && (
             <div>
+              {/* Contract header */}
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-blue-600">
+                  <p className="text-sm font-medium text-blue-700">
                     AI-generated agreement
                   </p>
 
-                  <h3 className="mt-1 text-2xl font-bold">{contract.title}</h3>
+                  <h3 className="mt-1 text-2xl font-bold text-slate-900">
+                    {contract.title}
+                  </h3>
                 </div>
 
-                <div className="rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700">
-                  ${contract.totalBudget}
+                <div className="rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-800">
+                  {contract.currency} {contract.totalBudget}
                 </div>
               </div>
 
-              <p className="mt-4 text-sm leading-6 text-slate-600">
+              <p className="mt-4 text-sm leading-6 text-slate-700">
                 {contract.summary}
               </p>
 
+              {/* Details */}
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-xs text-slate-500">Budget</p>
+                  <p className="text-xs font-medium text-slate-600">Budget</p>
 
-                  <p className="mt-1 font-bold">
+                  <p className="mt-1 font-bold text-slate-900">
                     {contract.currency} {contract.totalBudget}
                   </p>
                 </div>
 
                 <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-xs text-slate-500">Deadline</p>
+                  <p className="text-xs font-medium text-slate-600">Deadline</p>
 
-                  <p className="mt-1 font-bold">{contract.deadlineDays} days</p>
+                  <p className="mt-1 font-bold text-slate-900">
+                    {contract.deadlineDays} days
+                  </p>
                 </div>
               </div>
 
+              {/* Milestones */}
               <div className="mt-8">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-bold">Milestones</h4>
+                  <h4 className="font-bold text-slate-900">Milestones</h4>
 
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-slate-600">
                     {contract.milestones.length} stages
                   </span>
                 </div>
@@ -193,16 +208,18 @@ export default function ContractBuilder() {
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <p className="font-semibold">
+                          <p className="font-semibold text-slate-900">
                             {index + 1}. {milestone.title}
                           </p>
 
-                          <p className="mt-1 text-xs text-slate-500">
+                          <p className="mt-1 text-xs text-slate-600">
                             Due by day {milestone.deadlineDay}
                           </p>
                         </div>
 
-                        <p className="font-bold">${milestone.amount}</p>
+                        <p className="font-bold text-slate-900">
+                          {contract.currency} {milestone.amount}
+                        </p>
                       </div>
 
                       <div className="mt-3 space-y-1.5">
@@ -210,9 +227,11 @@ export default function ContractBuilder() {
                           (criterion, criterionIndex) => (
                             <div
                               key={criterionIndex}
-                              className="flex gap-2 text-sm text-slate-600"
+                              className="flex gap-2 text-sm text-slate-700"
                             >
-                              <span className="text-emerald-600">✓</span>
+                              <span className="font-semibold text-emerald-600">
+                                ✓
+                              </span>
 
                               <span>{criterion}</span>
                             </div>
@@ -224,15 +243,16 @@ export default function ContractBuilder() {
                 </div>
               </div>
 
+              {/* Ambiguities */}
               {contract.ambiguities.length > 0 && (
                 <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                  <p className="font-semibold text-amber-800">
+                  <p className="font-semibold text-amber-900">
                     AI found ambiguities
                   </p>
 
                   <div className="mt-2 space-y-1">
                     {contract.ambiguities.map((item, index) => (
-                      <p key={index} className="text-sm text-amber-700">
+                      <p key={index} className="text-sm text-amber-800">
                         • {item}
                       </p>
                     ))}
@@ -240,13 +260,14 @@ export default function ContractBuilder() {
                 </div>
               )}
 
+              {/* Risk flags */}
               {contract.riskFlags.length > 0 && (
                 <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4">
-                  <p className="font-semibold text-red-800">Risk flags</p>
+                  <p className="font-semibold text-red-900">Risk flags</p>
 
                   <div className="mt-2 space-y-1">
                     {contract.riskFlags.map((item, index) => (
-                      <p key={index} className="text-sm text-red-700">
+                      <p key={index} className="text-sm text-red-800">
                         • {item}
                       </p>
                     ))}
