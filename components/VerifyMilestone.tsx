@@ -1,68 +1,96 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-type VerifyMilestoneProps = {
-  milestoneId: string;
+type CriterionResult = {
+  requirement: string;
+  passed: boolean;
+  evidence: string;
 };
 
 type Evaluation = {
   status: "APPROVED" | "REVISION_REQUIRED" | "ESCALATE";
   score: number;
   confidence: number;
-  criteria_results: {
-    requirement: string;
-    passed: boolean;
-    evidence: string;
-  }[];
+  criteria_results: CriterionResult[];
   summary: string;
 };
 
+type VerifyMilestoneProps = {
+  milestoneId: string;
+};
+
 export default function VerifyMilestone({ milestoneId }: VerifyMilestoneProps) {
+  const router = useRouter();
+
   const [isVerifying, setIsVerifying] = useState(false);
-
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
+  const [error, setError] = useState("");
 
-  const [error, setError] = useState<string | null>(null);
+  async function handleVerify() {
+    setIsVerifying(true);
+    setError("");
+    setEvaluation(null);
 
-  const handleVerify = async () => {
     try {
-      setError(null);
-      setEvaluation(null);
-      setIsVerifying(true);
-
       const response = await fetch(`/api/milestone/${milestoneId}/verify`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
-      const data = await response.json().catch(() => null);
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.error || "AI verification failed.");
+        throw new Error(data.error || "Verification failed.");
       }
 
-      setEvaluation(data.evaluation);
-    } catch (verifyError) {
-      console.error("Verification error:", verifyError);
+      const result = data.evaluation ?? data;
 
+      setEvaluation(result);
+
+      // Refresh the server-rendered milestone state automatically.
+      router.refresh();
+    } catch (err) {
       setError(
-        verifyError instanceof Error
-          ? verifyError.message
-          : "AI verification failed.",
+        err instanceof Error
+          ? err.message
+          : "Something went wrong during verification.",
       );
     } finally {
       setIsVerifying(false);
     }
-  };
+  }
+
+  function getStatusLabel(status: Evaluation["status"]) {
+    switch (status) {
+      case "APPROVED":
+        return "Approved";
+      case "REVISION_REQUIRED":
+        return "Revision Required";
+      case "ESCALATE":
+        return "Escalation Required";
+      default:
+        return status;
+    }
+  }
 
   return (
-    <div className="mt-6 rounded-2xl border border-purple-200 bg-purple-50 p-6">
-      <div className="mb-4">
-        <p className="text-sm font-bold text-purple-950">AI verification</p>
+    <div className="mt-7 rounded-2xl border border-purple-200 bg-purple-50 p-6">
+      <div className="mb-5">
+        <p className="text-sm font-bold uppercase tracking-wide text-purple-700">
+          AI verification
+        </p>
 
-        <p className="mt-1 text-sm leading-6 text-purple-900">
-          TrustLayer will compare the submitted work against the milestone's
-          agreed acceptance criteria.
+        <h3 className="mt-1 text-xl font-bold text-purple-950">
+          Verify submitted work
+        </h3>
+
+        <p className="mt-2 text-sm text-purple-800">
+          TrustLayer will compare the submitted deliverable against the
+          milestone acceptance criteria.
         </p>
       </div>
 
@@ -70,78 +98,102 @@ export default function VerifyMilestone({ milestoneId }: VerifyMilestoneProps) {
         type="button"
         onClick={handleVerify}
         disabled={isVerifying}
-        className="w-full rounded-xl bg-purple-600 px-5 py-3.5 font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-xl bg-purple-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isVerifying ? "AI is verifying the work..." : "Run AI verification"}
+        {isVerifying ? "Verifying..." : "Run AI verification"}
       </button>
 
       {error && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          <p className="font-semibold">Verification failed</p>
-
-          <p className="mt-1">{error}</p>
+        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          {error}
         </div>
       )}
 
       {evaluation && (
-        <div className="mt-5 space-y-4">
-          <div
-            className={`rounded-xl border p-4 ${
-              evaluation.status === "APPROVED"
-                ? "border-emerald-200 bg-emerald-50"
-                : evaluation.status === "REVISION_REQUIRED"
-                  ? "border-orange-200 bg-orange-50"
-                  : "border-red-200 bg-red-50"
-            }`}
-          >
-            <div className="flex items-center justify-between gap-4">
-              <p className="font-bold text-slate-950">
-                {evaluation.status.replaceAll("_", " ")}
+        <div className="mt-6 space-y-5">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-purple-200 bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Result
               </p>
+              <p className="mt-1 text-lg font-bold text-slate-900">
+                {getStatusLabel(evaluation.status)}
+              </p>
+            </div>
 
-              <p className="font-bold text-slate-950">
+            <div className="rounded-xl border border-purple-200 bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Score
+              </p>
+              <p className="mt-1 text-lg font-bold text-slate-900">
                 {Math.round(evaluation.score * 100)}%
               </p>
             </div>
 
+            <div className="rounded-xl border border-purple-200 bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                AI confidence
+              </p>
+              <p className="mt-1 text-lg font-bold text-slate-900">
+                {Math.round(evaluation.confidence * 100)}%
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-purple-200 bg-white p-4">
+            <p className="text-sm font-semibold text-slate-900">
+              Verification summary
+            </p>
             <p className="mt-2 text-sm leading-6 text-slate-700">
               {evaluation.summary}
             </p>
-
-            <p className="mt-2 text-xs font-medium text-slate-500">
-              Confidence: {Math.round(evaluation.confidence * 100)}%
-            </p>
           </div>
 
-          <div className="space-y-3">
-            {evaluation.criteria_results.map((result, index) => (
-              <div
-                key={index}
-                className="rounded-xl border border-slate-200 bg-white p-4"
-              >
-                <div className="flex gap-3">
-                  <span
-                    className={
-                      result.passed
-                        ? "font-bold text-emerald-600"
-                        : "font-bold text-red-600"
-                    }
+          {evaluation.criteria_results?.length > 0 && (
+            <div>
+              <p className="mb-3 text-sm font-semibold text-slate-900">
+                Acceptance criteria
+              </p>
+
+              <div className="space-y-3">
+                {evaluation.criteria_results.map((criterion, index) => (
+                  <div
+                    key={`${criterion.requirement}-${index}`}
+                    className="rounded-xl border border-slate-200 bg-white p-4"
                   >
-                    {result.passed ? "✓" : "✕"}
-                  </span>
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                          criterion.passed
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {criterion.passed ? "✓" : "✕"}
+                      </span>
 
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">
-                      {result.requirement}
-                    </p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-900">
+                          {criterion.requirement}
+                        </p>
 
-                    <p className="mt-1 text-sm leading-6 text-slate-600">
-                      {result.evidence}
-                    </p>
+                        <p className="mt-1 text-sm leading-6 text-slate-600">
+                          {criterion.evidence}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
+            </div>
+          )}
+
+          <div className="rounded-xl border border-purple-200 bg-purple-100/60 px-4 py-3 text-sm text-purple-900">
+            {evaluation.status === "APPROVED"
+              ? "All required checks passed. The milestone can proceed to payment release."
+              : evaluation.status === "REVISION_REQUIRED"
+                ? "The submitted work does not yet satisfy all acceptance criteria. A revision can be submitted."
+                : "The submission requires further review before payment can proceed."}
           </div>
         </div>
       )}

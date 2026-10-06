@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import {
   PayPalProvider,
+  PayPalOneTimePaymentButton,
   PayPalCardFieldsProvider,
   PayPalCardNumberField,
   PayPalCardExpiryField,
@@ -65,12 +66,14 @@ async function authorizeMilestonePayment(milestoneId: string) {
   return data;
 }
 
-function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
-  const router = useRouter();
-
+function CardFieldsForm({
+  milestoneId,
+  onPaymentProtected,
+}: {
+  milestoneId: string;
+  onPaymentProtected: () => void;
+}) {
   const [error, setError] = useState<string | null>(null);
-
-  const [paymentProtected, setPaymentProtected] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -84,16 +87,12 @@ function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
 
   useEffect(() => {
     if (cardFieldsError) {
-      console.error("PayPal Card Fields loading error:", cardFieldsError);
-
       setError(cardFieldsError.message);
     }
   }, [cardFieldsError]);
 
   useEffect(() => {
     if (submitError) {
-      console.error("PayPal Card Fields submit error:", submitError);
-
       setError(submitError.message);
       setIsSubmitting(false);
     }
@@ -109,18 +108,8 @@ function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
     if (submitResponse.state === "succeeded") {
       authorizeMilestonePayment(milestoneId)
         .then(() => {
-          setPaymentProtected(true);
+          onPaymentProtected();
           setIsSubmitting(false);
-
-          /*
-           * Refresh the parent Server Component.
-           * This causes Supabase to be queried again,
-           * so the milestone immediately changes from
-           * PENDING → FUNDED without a manual refresh.
-           */
-          setTimeout(() => {
-            router.refresh();
-          }, 700);
         })
         .catch((authorizationError) => {
           console.error("Milestone authorization error:", authorizationError);
@@ -140,7 +129,7 @@ function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
 
       setIsSubmitting(false);
     }
-  }, [submitResponse, milestoneId, router]);
+  }, [submitResponse, milestoneId, onPaymentProtected]);
 
   const handleSubmit = async () => {
     try {
@@ -170,18 +159,6 @@ function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
       setIsSubmitting(false);
     }
   };
-
-  if (paymentProtected) {
-    return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-        <p className="font-semibold text-emerald-900">✓ Payment protected</p>
-
-        <p className="mt-1 text-sm text-emerald-800">
-          Payment authorized. Updating the project...
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -241,12 +218,96 @@ function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
         disabled={isSubmitting || !!cardFieldsError}
         className="w-full rounded-xl bg-blue-600 px-5 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isSubmitting ? "Protecting payment..." : "Protect milestone payment"}
+        {isSubmitting ? "Protecting payment..." : "Pay by card"}
       </button>
 
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-          <p className="font-semibold">Payment error</p>
+          <p className="font-semibold">Card payment error</p>
+
+          <p className="mt-1">{error}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PayPalButton({
+  milestoneId,
+  onPaymentProtected,
+}: {
+  milestoneId: string;
+  onPaymentProtected: () => void;
+}) {
+  const [error, setError] = useState<string | null>(null);
+
+  const [isAuthorizing, setIsAuthorizing] = useState(false);
+
+  const handleCreateOrder = async () => {
+    setError(null);
+
+    return {
+      orderId: await createMilestoneOrder(milestoneId),
+    };
+  };
+
+  const handleApprove = async ({ orderId }: { orderId: string }) => {
+    try {
+      setError(null);
+      setIsAuthorizing(true);
+
+      /*
+       * The PayPal button handles buyer approval.
+       * TrustLayer then explicitly authorizes the order
+       * on the server and stores the authorization ID.
+       */
+      await authorizeMilestonePayment(milestoneId);
+
+      console.log("PayPal button order approved:", orderId);
+
+      onPaymentProtected();
+    } catch (authorizationError) {
+      console.error("PayPal button authorization error:", authorizationError);
+
+      setError(
+        authorizationError instanceof Error
+          ? authorizationError.message
+          : "PayPal authorization failed.",
+      );
+    } finally {
+      setIsAuthorizing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <PayPalOneTimePaymentButton
+        createOrder={handleCreateOrder}
+        onApprove={handleApprove}
+        onCancel={() => {
+          setError("PayPal checkout was cancelled.");
+        }}
+        onError={(paypalError) => {
+          console.error("PayPal button error:", paypalError);
+
+          setError(
+            paypalError instanceof Error
+              ? paypalError.message
+              : "PayPal checkout failed.",
+          );
+        }}
+        presentationMode="auto"
+      />
+
+      {isAuthorizing && (
+        <p className="text-center text-sm text-slate-600">
+          Protecting your milestone payment...
+        </p>
+      )}
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <p className="font-semibold">PayPal payment error</p>
 
           <p className="mt-1">{error}</p>
         </div>
@@ -256,9 +317,13 @@ function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
 }
 
 export default function PayPalCheckout({ milestoneId }: PayPalCheckoutProps) {
+  const router = useRouter();
+
   const [clientToken, setClientToken] = useState<string | null>(null);
 
   const [tokenError, setTokenError] = useState<string | null>(null);
+
+  const [paymentProtected, setPaymentProtected] = useState(false);
 
   useEffect(() => {
     getClientToken()
@@ -273,6 +338,14 @@ export default function PayPalCheckout({ milestoneId }: PayPalCheckoutProps) {
         );
       });
   }, []);
+
+  const handlePaymentProtected = () => {
+    setPaymentProtected(true);
+
+    setTimeout(() => {
+      router.refresh();
+    }, 700);
+  };
 
   if (tokenError) {
     return (
@@ -292,22 +365,69 @@ export default function PayPalCheckout({ milestoneId }: PayPalCheckoutProps) {
     );
   }
 
+  if (paymentProtected) {
+    return (
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+        <p className="font-semibold text-emerald-900">✓ Payment protected</p>
+
+        <p className="mt-1 text-sm text-emerald-800">
+          Payment authorized. Updating the project...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <PayPalProvider
       clientToken={clientToken}
       environment="sandbox"
-      components={["card-fields"]}
+      components={["paypal-payments", "card-fields"]}
       pageType="checkout"
       testBuyerCountry="US"
     >
-      <PayPalCardFieldsProvider
-        amount={{
-          value: "0.00",
-          currencyCode: "USD",
-        }}
-      >
-        <CardFieldsForm milestoneId={milestoneId} />
-      </PayPalCardFieldsProvider>
+      <div className="space-y-6">
+        {/* PayPal */}
+        <div>
+          <p className="mb-3 text-sm font-semibold text-slate-900">
+            Pay with PayPal
+          </p>
+
+          <PayPalButton
+            milestoneId={milestoneId}
+            onPaymentProtected={handlePaymentProtected}
+          />
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-200" />
+
+          <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            or
+          </span>
+
+          <div className="h-px flex-1 bg-slate-200" />
+        </div>
+
+        {/* Card */}
+        <div>
+          <p className="mb-3 text-sm font-semibold text-slate-900">
+            Pay by card
+          </p>
+
+          <PayPalCardFieldsProvider
+            amount={{
+              value: "0.00",
+              currencyCode: "USD",
+            }}
+          >
+            <CardFieldsForm
+              milestoneId={milestoneId}
+              onPaymentProtected={handlePaymentProtected}
+            />
+          </PayPalCardFieldsProvider>
+        </div>
+      </div>
     </PayPalProvider>
   );
 }

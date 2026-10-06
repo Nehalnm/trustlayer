@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type MilestoneSubmissionProps = {
   milestoneId: string;
@@ -9,35 +10,29 @@ type MilestoneSubmissionProps = {
 export default function MilestoneSubmission({
   milestoneId,
 }: MilestoneSubmissionProps) {
+  const router = useRouter();
+
   const [submissionUrl, setSubmissionUrl] = useState("");
-
-  const [notes, setNotes] = useState("");
-
   const [submissionContent, setSubmissionContent] = useState("");
-
+  const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const [error, setError] = useState<string | null>(null);
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-  const [success, setSuccess] = useState(false);
+    setError("");
+    setSuccess("");
 
-  const handleSubmit = async () => {
+    if (!submissionUrl.trim() && !submissionContent.trim()) {
+      setError("Please provide a submission URL or deliverable content.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
-      setError(null);
-      setSuccess(false);
-
-      if (submissionUrl.trim().length < 5) {
-        setError("Please provide a deliverable URL.");
-        return;
-      }
-
-      if (submissionContent.trim().length < 20) {
-        setError("Please provide the actual deliverable content.");
-        return;
-      }
-
-      setIsSubmitting(true);
-
       const response = await fetch(`/api/milestone/${milestoneId}/submit`, {
         method: "POST",
         headers: {
@@ -45,133 +40,129 @@ export default function MilestoneSubmission({
         },
         body: JSON.stringify({
           submissionUrl: submissionUrl.trim(),
-          notes: notes.trim(),
           submissionContent: submissionContent.trim(),
+          notes: notes.trim(),
         }),
       });
 
-      const data = await response.json().catch(() => null);
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.error || "Failed to submit work.");
+        throw new Error(data.error || "Failed to submit work.");
       }
 
-      setSuccess(true);
+      setSuccess("Work submitted successfully.");
+
       setSubmissionUrl("");
-      setNotes("");
       setSubmissionContent("");
+      setNotes("");
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } catch (submitError) {
-      console.error("Submission error:", submitError);
-
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Failed to submit work.",
-      );
+      // Refresh the server-rendered milestone state automatically.
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   return (
     <div className="mt-7 rounded-2xl border border-blue-200 bg-blue-50 p-6">
       <div className="mb-5">
-        <p className="text-sm font-bold text-blue-950">Submit completed work</p>
+        <p className="text-sm font-bold uppercase tracking-wide text-blue-700">
+          Submit work
+        </p>
 
-        <p className="mt-1 text-sm leading-6 text-blue-900">
-          Provide the deliverable link and the actual work content. TrustLayer
-          will compare the submitted work against the agreed milestone
-          requirements.
+        <h3 className="mt-1 text-xl font-bold text-blue-950">
+          Submit your deliverable
+        </h3>
+
+        <p className="mt-2 text-sm text-blue-800">
+          Provide a link to the work and/or the actual deliverable content.
+          TrustLayer will verify it against the milestone acceptance criteria.
         </p>
       </div>
 
-      <div className="space-y-4">
-        {/* Deliverable URL */}
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-900">
-            Deliverable URL
+          <label
+            htmlFor={`submission-url-${milestoneId}`}
+            className="mb-2 block text-sm font-semibold text-blue-950"
+          >
+            Submission URL
           </label>
 
           <input
+            id={`submission-url-${milestoneId}`}
             type="url"
             value={submissionUrl}
             onChange={(event) => setSubmissionUrl(event.target.value)}
-            placeholder="https://github.com/your-project"
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            placeholder="https://github.com/..."
+            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           />
         </div>
 
-        {/* Deliverable content */}
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-900">
+          <label
+            htmlFor={`submission-content-${milestoneId}`}
+            className="mb-2 block text-sm font-semibold text-blue-950"
+          >
             Deliverable content
           </label>
 
-          <p className="mb-2 text-xs leading-5 text-slate-500">
-            Paste the relevant HTML, CSS, JavaScript, document text, or other
-            project content that should be verified.
-          </p>
-
           <textarea
+            id={`submission-content-${milestoneId}`}
             value={submissionContent}
             onChange={(event) => setSubmissionContent(event.target.value)}
-            placeholder="Paste the actual completed work here..."
+            placeholder="Describe or paste the actual deliverable here..."
             rows={10}
-            className="w-full resize-y rounded-xl border border-slate-300 bg-white px-4 py-3 font-mono text-xs leading-6 text-slate-900 outline-none transition placeholder:font-sans placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           />
+
+          <p className="mt-2 text-xs text-blue-700">
+            Include the actual work or enough detail for the AI verifier to
+            evaluate the acceptance criteria.
+          </p>
         </div>
 
-        {/* Notes */}
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-900">
-            Submission notes
+          <label
+            htmlFor={`submission-notes-${milestoneId}`}
+            className="mb-2 block text-sm font-semibold text-blue-950"
+          >
+            Notes
           </label>
 
           <textarea
+            id={`submission-notes-${milestoneId}`}
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            placeholder="Explain what was completed and anything the reviewer should know."
+            placeholder="Add any relevant notes for the client or verifier..."
             rows={4}
-            className="w-full resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           />
         </div>
 
-        {/* Submit */}
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={
-            isSubmitting ||
-            submissionUrl.trim().length < 5 ||
-            submissionContent.trim().length < 20
-          }
-          className="w-full rounded-xl bg-blue-600 px-5 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isSubmitting ? "Submitting work..." : "Submit for AI verification"}
-        </button>
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            {error}
+          </div>
+        )}
 
         {success && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            <p className="font-semibold">✓ Work submitted</p>
-
-            <p className="mt-1">
-              TrustLayer is preparing this milestone for AI verification.
-            </p>
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+            {success}
           </div>
         )}
 
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            <p className="font-semibold">Submission failed</p>
-
-            <p className="mt-1">{error}</p>
-          </div>
-        )}
-      </div>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting ? "Submitting..." : "Submit Work"}
+        </button>
+      </form>
     </div>
   );
 }
