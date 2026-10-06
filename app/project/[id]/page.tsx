@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-
+import OpenDispute from "@/components/OpenDispute";
 import EvaluationResult from "@/components/EvaluationResult";
 import MilestoneSubmission from "@/components/MilestoneSubmission";
 import PayPalCheckout from "@/components/PayPalCheckout";
@@ -422,6 +422,8 @@ export default async function ProjectPage({ params }: PageProps) {
                       </div>
 
                       <MilestoneSubmission milestoneId={milestone.id} />
+
+                      <OpenDispute milestoneId={milestone.id} />
                     </div>
                   )}
 
@@ -440,6 +442,7 @@ export default async function ProjectPage({ params }: PageProps) {
                       </div>
 
                       <VerifyMilestone milestoneId={milestone.id} />
+                      <OpenDispute milestoneId={milestone.id} />
                     </div>
                   )}
 
@@ -490,6 +493,8 @@ export default async function ProjectPage({ params }: PageProps) {
                           the authorized PayPal payment may be released.
                         </p>
                       </div>
+
+                      <OpenDispute milestoneId={milestone.id} />
 
                       <ReleasePayment milestoneId={milestone.id} />
                     </div>

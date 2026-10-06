@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   PayPalProvider,
@@ -47,8 +48,6 @@ async function createMilestoneOrder(milestoneId: string): Promise<string> {
     throw new Error("PayPal order ID was not returned");
   }
 
-  console.log("Milestone PayPal order created:", data.id);
-
   return data.id;
 }
 
@@ -67,6 +66,8 @@ async function authorizeMilestonePayment(milestoneId: string) {
 }
 
 function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
+  const router = useRouter();
+
   const [error, setError] = useState<string | null>(null);
 
   const [paymentProtected, setPaymentProtected] = useState(false);
@@ -103,17 +104,23 @@ function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
       return;
     }
 
-    console.log("PayPal Card Fields response:", submitResponse);
-
     const message = submitResponse.data?.message;
 
     if (submitResponse.state === "succeeded") {
       authorizeMilestonePayment(milestoneId)
-        .then((authorization) => {
-          console.log("Milestone payment authorized:", authorization);
-
+        .then(() => {
           setPaymentProtected(true);
           setIsSubmitting(false);
+
+          /*
+           * Refresh the parent Server Component.
+           * This causes Supabase to be queried again,
+           * so the milestone immediately changes from
+           * PENDING → FUNDED without a manual refresh.
+           */
+          setTimeout(() => {
+            router.refresh();
+          }, 700);
         })
         .catch((authorizationError) => {
           console.error("Milestone authorization error:", authorizationError);
@@ -129,13 +136,11 @@ function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
     }
 
     if (submitResponse.state === "failed") {
-      console.error("PayPal payment failed:", message);
-
       setError(message || "PayPal card payment failed.");
 
       setIsSubmitting(false);
     }
-  }, [submitResponse, milestoneId]);
+  }, [submitResponse, milestoneId, router]);
 
   const handleSubmit = async () => {
     try {
@@ -172,8 +177,7 @@ function CardFieldsForm({ milestoneId }: { milestoneId: string }) {
         <p className="font-semibold text-emerald-900">✓ Payment protected</p>
 
         <p className="mt-1 text-sm text-emerald-800">
-          This milestone is funded and the payment is authorized until the
-          submitted work is verified.
+          Payment authorized. Updating the project...
         </p>
       </div>
     );
