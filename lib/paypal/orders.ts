@@ -9,6 +9,22 @@ import { paypalClient } from "./client";
 const ordersController = new OrdersController(paypalClient);
 const paymentsController = new PaymentsController(paypalClient);
 
+// GET-only reads used by reconciliation; these never authorize or capture funds.
+export async function getPayPalOrder(orderId: string) {
+  const { result } = await ordersController.getOrder({ id: orderId });
+  return result;
+}
+
+export async function getPayPalCapture(captureId: string) {
+  const { result } = await paymentsController.getCapturedPayment({ captureId });
+  return result;
+}
+
+export async function getPayPalAuthorization(authorizationId: string) {
+  const { result } = await paymentsController.getAuthorizedPayment({ authorizationId });
+  return result;
+}
+
 export async function createPayPalOrder(amount: string): Promise<string> {
   const { result } = await ordersController.createOrder({
     body: {

@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 
 type ReleasePaymentProps = {
   milestoneId: string;
+  locked?: boolean;
 };
 
-export default function ReleasePayment({ milestoneId }: ReleasePaymentProps) {
+export default function ReleasePayment({ milestoneId, locked = false }: ReleasePaymentProps) {
   const router = useRouter();
 
   const [isReleasing, setIsReleasing] = useState(false);
@@ -53,28 +54,28 @@ export default function ReleasePayment({ milestoneId }: ReleasePaymentProps) {
   }
 
   return (
-    <div className="mt-7 rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
+    <div className="mt-7 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-6">
       <div className="mb-5">
-        <p className="text-sm font-bold uppercase tracking-wide text-emerald-700">
+        <p className="text-sm font-bold uppercase tracking-wide text-emerald-300">
           Payment release
         </p>
 
-        <h3 className="mt-1 text-xl font-bold text-emerald-950">
+        <h3 className="mt-1 text-xl font-bold text-emerald-100">
           Release milestone payment
         </h3>
 
-        <p className="mt-2 text-sm text-emerald-800">
+        <p className="mt-2 text-sm text-emerald-200">
           TrustLayer will evaluate the payment policy before capturing the
           authorized PayPal payment.
         </p>
       </div>
 
-      <div className="mb-5 rounded-xl border border-emerald-200 bg-white p-4">
-        <p className="text-sm font-semibold text-slate-900">
+      <div className="mb-5 rounded-xl border border-emerald-400/20 bg-[#171a21] p-4">
+        <p className="text-sm font-semibold text-slate-100">
           Payment protection
         </p>
 
-        <p className="mt-1 text-sm leading-6 text-slate-600">
+        <p className="mt-1 text-sm leading-6 text-slate-400">
           Payment is released only when the milestone has been approved, all
           acceptance criteria have passed, verification confidence is
           sufficient, the PayPal authorization exists, and there is no open
@@ -85,20 +86,21 @@ export default function ReleasePayment({ milestoneId }: ReleasePaymentProps) {
       <button
         type="button"
         onClick={handleRelease}
-        disabled={isReleasing}
+        disabled={isReleasing || locked}
         className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isReleasing ? "Releasing payment..." : "Release Payment"}
+        {locked ? "Release paused for review" : isReleasing ? "Releasing payment..." : "Release payment"}
       </button>
+      {locked && <p className="mt-3 text-xs leading-6 text-amber-200">A previous operation needs review. Check PayPal status before taking further action.</p>}
 
       {error && (
-        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+        <div className="mt-5 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-medium text-red-300">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mt-5 rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm font-medium text-emerald-700">
+        <div className="mt-5 rounded-xl border border-emerald-400/20 bg-[#171a21] px-4 py-3 text-sm font-medium text-emerald-300">
           {success}
         </div>
       )}

@@ -47,9 +47,10 @@ Do not assign these to an arbitrary user or weaken RLS to expose them.
 ## Remaining work, in order
 
 1. Completed: apply and verify the grants/search-path hardening as hosted migration 20261022122800.
-2. Add durable operation records and controlled recovery for interrupted
-   submissions, verifications, authorizations, and captures. New shared-lock
-   failures intentionally remain blocked; never clear a lock based on age alone.
+2. Partially implemented: capture intent/response activity records and an
+   owner-only existing-payment reconciliation endpoint. Controlled lock recovery
+   for interrupted submissions/verifications and uncertain captures remains
+   pending; never clear a lock based on age alone. See `payment-recovery.md`.
 3. Reconcile authorization expiration, pending/denied captures, refunds, reversals,
    amount/currency/payee evidence, and project completion retries.
 4. Implement dispute resolution and separate client/freelancer membership.

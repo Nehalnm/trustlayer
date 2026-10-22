@@ -66,7 +66,7 @@ export async function POST(
     const { data: milestone, error: milestoneError } = await supabase
       .from("milestones")
       .select(
-        "id, project_id, title, status, acceptance_criteria, paypal_authorization_id, paypal_capture_id, payment_release_locked_at",
+        "id, project_id, title, amount, status, acceptance_criteria, paypal_order_id, paypal_authorization_id, paypal_capture_id, payment_release_locked_at",
       )
       .eq("id", milestoneId)
       .single();
@@ -357,6 +357,20 @@ export async function POST(
       .digest("hex")
       .slice(0, 32);
 
+    // Durable intent before the network call. If the process stops, the lock
+    // and this event preserve the operation identity for investigation.
+    const { error: attemptError } = await supabase.from("activity_events").insert({
+      project_id: milestone.project_id,
+      milestone_id: milestone.id,
+      event_type: "PAYMENT_CAPTURE_STARTED",
+      message: "Payment release policy passed; capture request recorded.",
+      metadata: { paypalRequestId, paypalOrderId: milestone.paypal_order_id,
+        paypalAuthorizationId: authorizationId, amount: milestone.amount,
+        currency: accessibleProject.currency, submissionId: submission.id,
+        evaluationId: evaluation.id, lockTimestamp },
+    });
+    if (attemptError) throw new Error("The payment attempt could not be recorded. No capture was requested; reconciliation is required.");
+
     const capture = await captureAuthorizedPayPalPayment(
       authorizationId,
       paypalRequestId,
@@ -367,6 +381,14 @@ export async function POST(
         "PayPal returned no capture ID. Reconciliation is required.",
       );
     }
+
+    const { error: observedError } = await supabase.from("activity_events").insert({
+      project_id: milestone.project_id, milestone_id: milestone.id,
+      event_type: "PAYMENT_CAPTURE_OBSERVED",
+      message: "PayPal returned a capture response; payment state is being reconciled.",
+      metadata: { paypalRequestId, paypalCaptureId: capture.id, captureStatus: capture.status },
+    });
+    if (observedError) throw new Error("PayPal returned a capture, but its receipt could not be recorded. Check payment status before any further action.");
 
     // Do not mark the milestone as PAID unless PayPal reports
     // a completed capture.

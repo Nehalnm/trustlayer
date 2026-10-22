@@ -62,7 +62,7 @@ export default function OpenDispute({ milestoneId }: OpenDisputeProps) {
   }
 
   return (
-    <div className="mt-7 rounded-2xl border border-amber-200 bg-amber-50 p-6">
+    <div className="mt-7 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-6">
       <div className="mb-5">
         <p className="text-sm font-bold uppercase tracking-wide text-amber-700">
           Dispute protection
@@ -93,18 +93,18 @@ export default function OpenDispute({ milestoneId }: OpenDisputeProps) {
             onChange={(event) => setReason(event.target.value)}
             placeholder="Explain why you are opening this dispute..."
             rows={5}
-            className="w-full rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
+            className="w-full rounded-xl border border-amber-400/20 bg-[#171a21] px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
           />
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <div className="rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-medium text-red-300">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+          <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm font-medium text-emerald-300">
             {success}
           </div>
         )}

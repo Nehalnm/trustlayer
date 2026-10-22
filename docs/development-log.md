@@ -82,6 +82,45 @@ read model. The timestamp trigger also used a mutable search path.
 Controlled reconciliation, operation-lock recovery, dispute resolution, and
 client/freelancer permissions. See `database-hardening.md` for verification detail.
 
+## 2026-10-22 — Dark interface and existing-payment reconciliation
+
+Status: implemented locally; prepared for a separate draft review on
+`codex/dark-ui-payment-recovery`. Not merged or deployed.
+
+### Problem
+
+The owner wanted a more polished dark interface and a conservative way to inspect
+and recover existing PayPal records after an interrupted request.
+
+### Changes
+
+- Charcoal UI with blue actions and mint accents across landing, account,
+  project list, agreement, payment, activity, milestone, and evidence surfaces.
+- Added shared brand/glyph components, a redesigned illustrative hero console,
+  responsive project navigation, milestone cards, focus/reduced-motion treatment.
+- Hosted card fields use dark input styles and the actual milestone amount.
+- Added owner-only Check PayPal status, strict provider-evidence validation, and
+  reconciliation of matching existing captures or unexpired authorizations.
+- Release records capture intent before contacting PayPal and records responses
+  before finalizing local state. No new schema is needed.
+- Locked releases show a paused action and a payment-status check.
+
+### Validation
+
+- 44 automated tests passed with mocked external services.
+- Production build passed; lint has zero errors and three existing warnings.
+- HTTP checks: landing/login 200; project list redirects signed-out users to login.
+- Browser tooling reported no connected browser; screenshots, signed-in visuals,
+  mobile viewport interaction, and card-field rendering remain unverified.
+- No live PayPal calls, captures, or hosted database changes were made in this step.
+
+### Remaining work
+
+General lock recovery still needs controlled investigation; this feature never
+automatically clears uncertain locks or retries captures. Separate roles,
+dispute resolution, refund/reversal lifecycle, and approved Sandbox end-to-end
+tests remain pending. See `payment-recovery.md` and `design-direction.md`.
+
 ## Entry template
 
 ```markdown

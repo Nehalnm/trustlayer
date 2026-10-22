@@ -73,9 +73,9 @@ function EvidenceMetric({
   value: string | number;
 }) {
   return (
-    <div className="border border-slate-200 bg-white p-3">
-      <p className="text-xs leading-5 text-slate-500">{label}</p>
-      <p className="mt-1 text-xl font-semibold tracking-tight text-slate-950">
+    <div className="border border-white/10 bg-[#171a21] p-3">
+      <p className="text-xs leading-5 text-[#969eaf]">{label}</p>
+      <p className="mt-1 text-xl font-semibold tracking-tight text-slate-100">
         {value}
       </p>
     </div>
@@ -90,12 +90,12 @@ function StructureCheck({
   detected: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-slate-200 py-2 last:border-0">
-      <span className="text-sm text-slate-600">{label}</span>
+    <div className="flex items-center justify-between gap-3 border-b border-white/10 py-2 last:border-0">
+      <span className="text-sm text-slate-400">{label}</span>
       <span
         className={
           detected
-            ? "text-xs font-medium text-emerald-700"
+            ? "text-xs font-medium text-emerald-300"
             : "text-xs text-slate-400"
         }
       >
@@ -169,32 +169,32 @@ export default function MilestoneInsights({
       : "Not authorized";
 
   const paymentClass = hasCapture
-    ? "text-emerald-700"
+    ? "text-emerald-300"
     : hasAuthorization
-      ? "text-blue-700"
-      : "text-slate-500";
+      ? "text-blue-300"
+      : "text-[#969eaf]";
 
   return (
-    <aside className="min-w-0 border-l border-slate-200 pl-0 lg:pl-7">
-      {loadError && <p role="alert" className="mb-4 border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{loadError}</p>}
+    <aside className="min-w-0 border-l border-white/10 pl-0 lg:pl-7">
+      {loadError && <p role="alert" className="mb-4 border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-200">{loadError}</p>}
       {/* TRUST CHECK */}
-      <div className="border-b border-slate-200 pb-5">
+      <div className="border-b border-white/10 pb-5">
         <div className="flex items-center justify-between gap-3">
-          <h4 className="text-lg font-semibold tracking-tight text-slate-950">
+          <h4 className="text-lg font-semibold tracking-tight text-slate-100">
             Trust check
           </h4>
 
           <span
             className={
               milestoneStatus === "APPROVED" || milestoneStatus === "PAID"
-                ? "text-sm font-medium text-emerald-700"
+                ? "text-sm font-medium text-emerald-300"
                 : milestoneStatus === "REVISION_REQUIRED"
-                  ? "text-sm font-medium text-orange-700"
+                  ? "text-sm font-medium text-orange-300"
                   : milestoneStatus === "DISPUTED"
-                    ? "text-sm font-medium text-red-700"
+                    ? "text-sm font-medium text-red-300"
                     : milestoneStatus === "UNDER_REVIEW"
-                      ? "text-sm font-medium text-blue-700"
-                      : "text-sm font-medium text-slate-500"
+                      ? "text-sm font-medium text-blue-300"
+                      : "text-sm font-medium text-[#969eaf]"
             }
           >
             {milestoneStatus === "APPROVED" || milestoneStatus === "PAID"
@@ -209,31 +209,31 @@ export default function MilestoneInsights({
           </span>
         </div>
 
-        <p className="mt-2 text-sm leading-6 text-slate-600">
+        <p className="mt-2 text-sm leading-6 text-slate-400">
           The submitted work is checked against the agreed acceptance criteria.
           The verification result does not directly release funds.
         </p>
       </div>
 
       {/* SCORE */}
-      <div className="grid grid-cols-3 gap-3 border-b border-slate-200 py-5">
+      <div className="grid grid-cols-3 gap-3 border-b border-white/10 py-5">
         <div>
-          <p className="text-xs text-slate-500">Score</p>
-          <p className="mt-1 text-xl font-semibold text-slate-950">
+          <p className="text-xs text-[#969eaf]">Score</p>
+          <p className="mt-1 text-xl font-semibold text-slate-100">
             {score !== null ? `${score}%` : "—"}
           </p>
         </div>
 
         <div>
-          <p className="text-xs text-slate-500">Confidence</p>
-          <p className="mt-1 text-xl font-semibold text-slate-950">
+          <p className="text-xs text-[#969eaf]">Confidence</p>
+          <p className="mt-1 text-xl font-semibold text-slate-100">
             {confidence !== null ? `${confidence}%` : "—"}
           </p>
         </div>
 
         <div>
-          <p className="text-xs text-slate-500">Passed</p>
-          <p className="mt-1 text-xl font-semibold text-slate-950">
+          <p className="text-xs text-[#969eaf]">Passed</p>
+          <p className="mt-1 text-xl font-semibold text-slate-100">
             {results.length > 0 ? `${passedCount}/${results.length}` : "—"}
           </p>
         </div>
@@ -242,18 +242,18 @@ export default function MilestoneInsights({
       {/* ACCEPTANCE CRITERIA */}
       <div className="py-5">
         <div className="flex items-center justify-between gap-3">
-          <h5 className="text-sm font-semibold text-slate-950">
+          <h5 className="text-sm font-semibold text-slate-100">
             Acceptance criteria
           </h5>
 
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-[#969eaf]">
             {results.length > 0
               ? `${passedCount}/${results.length} passed`
               : `${criteria.length} requirements`}
           </span>
         </div>
 
-        <div className="mt-4 divide-y divide-slate-200 border-y border-slate-200">
+        <div className="mt-4 divide-y divide-white/10 border-y border-white/10">
           {criteria.map((criterion, index) => {
             const result = results.find(
               (item) =>
@@ -269,22 +269,22 @@ export default function MilestoneInsights({
                   <span
                     className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border text-[10px] ${
                       passed === true
-                        ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                        ? "border-emerald-300 bg-emerald-400/10 text-emerald-300"
                         : passed === false
-                          ? "border-orange-300 bg-orange-50 text-orange-700"
-                          : "border-slate-300 text-slate-400"
+                          ? "border-orange-300 bg-orange-400/10 text-orange-300"
+                          : "border-white/15 text-slate-400"
                     }`}
                   >
                     {passed === true ? "✓" : passed === false ? "!" : "·"}
                   </span>
 
                   <div className="min-w-0">
-                    <p className="text-sm leading-5 text-slate-800">
+                    <p className="text-sm leading-5 text-slate-200">
                       {criterion}
                     </p>
 
                     {result?.evidence && (
-                      <p className="mt-1 text-xs leading-5 text-slate-500">
+                      <p className="mt-1 text-xs leading-5 text-[#969eaf]">
                         {result.evidence}
                       </p>
                     )}
@@ -297,18 +297,18 @@ export default function MilestoneInsights({
       </div>
 
       {/* NEW: ARTIFACT EVIDENCE */}
-      <section className="border-t border-slate-200 py-5">
+      <section className="border-t border-white/10 py-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-medium tracking-wide text-blue-700">
+            <p className="text-xs font-medium tracking-wide text-blue-300">
               SOURCE ANALYSIS
             </p>
 
-            <h5 className="mt-1 text-base font-semibold text-slate-950">
+            <h5 className="mt-1 text-base font-semibold text-slate-100">
               Artifact evidence
             </h5>
 
-            <p className="mt-1 text-xs leading-5 text-slate-500">
+            <p className="mt-1 text-xs leading-5 text-[#969eaf]">
               Observable signals extracted from the submitted content.
             </p>
           </div>
@@ -316,8 +316,8 @@ export default function MilestoneInsights({
           <span
             className={`shrink-0 border px-2 py-1 text-[10px] font-medium ${
               artifact
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                : "border-amber-200 bg-amber-50 text-amber-700"
+                ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+                : "border-amber-400/20 bg-amber-400/10 text-amber-700"
             }`}
           >
             {artifact ? "SAVED" : "MISSING"}
@@ -325,8 +325,8 @@ export default function MilestoneInsights({
         </div>
 
         {!artifact ? (
-          <div className="mt-4 border border-amber-200 bg-amber-50 p-4">
-            <p className="text-sm font-medium text-amber-900">
+          <div className="mt-4 border border-amber-400/20 bg-amber-400/10 p-4">
+            <p className="text-sm font-medium text-amber-200">
               Artifact analysis unavailable
             </p>
 
@@ -361,9 +361,9 @@ export default function MilestoneInsights({
             </div>
 
             {/* Source fingerprint */}
-            <div className="mt-3 border border-slate-200 bg-white p-3">
+            <div className="mt-3 border border-white/10 bg-[#171a21] p-3">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-medium text-slate-600">
+                <p className="text-xs font-medium text-slate-400">
                   Content fingerprint
                 </p>
 
@@ -372,12 +372,12 @@ export default function MilestoneInsights({
 
               <p
                 title={artifact.sha256}
-                className="mt-2 break-all font-mono text-[10px] leading-5 text-slate-700"
+                className="mt-2 break-all font-mono text-[10px] leading-5 text-slate-300"
               >
                 {artifact.sha256}
               </p>
 
-              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#969eaf]">
                 <span>Format: {artifact.format.toUpperCase()}</span>
 
                 <span>
@@ -387,18 +387,18 @@ export default function MilestoneInsights({
             </div>
 
             {/* Detected source structure */}
-            <details className="group mt-3 border border-slate-200 bg-white">
+            <details className="group mt-3 border border-white/10 bg-[#171a21]">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-3">
-                <span className="text-sm font-medium text-slate-800">
+                <span className="text-sm font-medium text-slate-200">
                   HTML structure
                 </span>
 
-                <span className="text-xs text-slate-500 transition-transform group-open:rotate-180">
+                <span className="text-xs text-[#969eaf] transition-transform group-open:rotate-180">
                   ↓
                 </span>
               </summary>
 
-              <div className="border-t border-slate-200 px-3 pb-3">
+              <div className="border-t border-white/10 px-3 pb-3">
                 <StructureCheck
                   label="DOCTYPE"
                   detected={structure?.hasDoctype ?? false}
@@ -442,8 +442,8 @@ export default function MilestoneInsights({
                       key={label}
                       className="flex items-center justify-between gap-3 py-2"
                     >
-                      <span className="text-xs text-slate-500">{label}</span>
-                      <span className="text-xs font-medium text-slate-800">
+                      <span className="text-xs text-[#969eaf]">{label}</span>
+                      <span className="text-xs font-medium text-slate-200">
                         {value}
                       </span>
                     </div>
@@ -453,25 +453,25 @@ export default function MilestoneInsights({
             </details>
 
             {/* Criterion-to-evidence mapping */}
-            <details className="group mt-3 border border-slate-200 bg-white">
+            <details className="group mt-3 border border-white/10 bg-[#171a21]">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-3">
-                <span className="text-sm font-medium text-slate-800">
+                <span className="text-sm font-medium text-slate-200">
                   Requirement evidence
                 </span>
 
-                <span className="text-xs text-slate-500 transition-transform group-open:rotate-180">
+                <span className="text-xs text-[#969eaf] transition-transform group-open:rotate-180">
                   ↓
                 </span>
               </summary>
 
-              <div className="border-t border-slate-200 px-3">
+              <div className="border-t border-white/10 px-3">
                 {criterionSignals.length > 0 ? (
                   criterionSignals.map((item, index) => (
                     <div
                       key={`${item.criterion}-${index}`}
-                      className="border-b border-slate-100 py-3 last:border-0"
+                      className="border-b border-white/10 py-3 last:border-0"
                     >
-                      <p className="text-xs font-medium leading-5 text-slate-800">
+                      <p className="text-xs font-medium leading-5 text-slate-200">
                         {item.criterion}
                       </p>
 
@@ -479,7 +479,7 @@ export default function MilestoneInsights({
                         {item.signals.map((signal, signalIndex) => (
                           <li
                             key={`${index}-${signalIndex}`}
-                            className="flex gap-2 text-xs leading-5 text-slate-500"
+                            className="flex gap-2 text-xs leading-5 text-[#969eaf]"
                           >
                             <span className="text-blue-600">↳</span>
                             <span>{signal}</span>
@@ -489,7 +489,7 @@ export default function MilestoneInsights({
                     </div>
                   ))
                 ) : (
-                  <p className="py-3 text-xs text-slate-500">
+                  <p className="py-3 text-xs text-[#969eaf]">
                     No criterion-specific signals were recorded.
                   </p>
                 )}
@@ -497,22 +497,22 @@ export default function MilestoneInsights({
             </details>
 
             {/* Analyzer observations */}
-            <details className="group mt-3 border border-slate-200 bg-white">
+            <details className="group mt-3 border border-white/10 bg-[#171a21]">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-3">
-                <span className="text-sm font-medium text-slate-800">
+                <span className="text-sm font-medium text-slate-200">
                   Analyzer observations
                 </span>
 
-                <span className="text-xs text-slate-500 transition-transform group-open:rotate-180">
+                <span className="text-xs text-[#969eaf] transition-transform group-open:rotate-180">
                   ↓
                 </span>
               </summary>
 
-              <ul className="space-y-2 border-t border-slate-200 p-3">
+              <ul className="space-y-2 border-t border-white/10 p-3">
                 {observations.map((observation, index) => (
                   <li
                     key={index}
-                    className="flex gap-2 text-xs leading-5 text-slate-500"
+                    className="flex gap-2 text-xs leading-5 text-[#969eaf]"
                   >
                     <span className="text-blue-600">·</span>
                     <span>{observation}</span>
@@ -522,22 +522,22 @@ export default function MilestoneInsights({
             </details>
 
             {/* Security signals */}
-            <div className="mt-3 border border-slate-200 p-3">
+            <div className="mt-3 border border-white/10 p-3">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-slate-800">
+                <p className="text-sm font-medium text-slate-200">
                   Suspicious-instruction scan
                 </p>
 
                 <span
                   className={`text-xs font-medium ${
-                    suspiciousCount > 0 ? "text-amber-700" : "text-emerald-700"
+                    suspiciousCount > 0 ? "text-amber-700" : "text-emerald-300"
                   }`}
                 >
                   {suspiciousCount} signal(s)
                 </span>
               </div>
 
-              <p className="mt-2 text-xs leading-5 text-slate-500">
+              <p className="mt-2 text-xs leading-5 text-[#969eaf]">
                 This pattern scanner is a limited security signal, not proof
                 that a submission is safe or malicious.
               </p>
@@ -545,9 +545,9 @@ export default function MilestoneInsights({
               {security?.suspiciousInstructions?.map((item, index) => (
                 <div
                   key={`${item.type}-${index}`}
-                  className="mt-3 border border-amber-200 bg-amber-50 p-3"
+                  className="mt-3 border border-amber-400/20 bg-amber-400/10 p-3"
                 >
-                  <p className="text-xs font-semibold text-amber-900">
+                  <p className="text-xs font-semibold text-amber-200">
                     {item.type}
                   </p>
 
@@ -562,16 +562,16 @@ export default function MilestoneInsights({
       </section>
 
       {/* PAYMENT */}
-      <div className="border-t border-slate-200 pt-5">
+      <div className="border-t border-white/10 pt-5">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm text-slate-500">Payment</span>
+          <span className="text-sm text-[#969eaf]">Payment</span>
 
           <span className={`text-sm font-semibold ${paymentClass}`}>
             {paymentLabel}
           </span>
         </div>
 
-        <p className="mt-3 text-sm leading-6 text-slate-600">
+        <p className="mt-3 text-sm leading-6 text-slate-400">
           {hasCapture
             ? "The authorized payment has been captured."
             : hasAuthorization
@@ -582,7 +582,7 @@ export default function MilestoneInsights({
         </p>
       </div>
 
-      <div className="mt-5 border-t border-slate-200 pt-4 text-xs text-slate-500">
+      <div className="mt-5 border-t border-white/10 pt-4 text-xs text-[#969eaf]">
         AI recommends · Policy validates · PayPal executes
       </div>
     </aside>

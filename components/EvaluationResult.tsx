@@ -64,9 +64,9 @@ type EvaluationResultProps = {
 
 function Metric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="border border-slate-200 bg-white p-4">
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+    <div className="border border-white/10 bg-[#171a21] p-4">
+      <p className="text-xs text-[#969eaf]">{label}</p>
+      <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-100">
         {value}
       </p>
     </div>
@@ -115,7 +115,7 @@ export default function EvaluationResult({
 
   if (loading) {
     return (
-      <div className="mt-6 border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600">
+      <div className="mt-6 border border-white/10 bg-[#171a21] px-5 py-4 text-sm text-slate-400">
         Loading verification evidence...
       </div>
     );
@@ -123,7 +123,7 @@ export default function EvaluationResult({
 
   if (error) {
     return (
-      <div className="mt-6 border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
+      <div className="mt-6 border border-red-400/20 bg-red-400/10 px-5 py-4 text-sm text-red-200">
         {error}
       </div>
     );
@@ -141,26 +141,26 @@ export default function EvaluationResult({
 
   const statusStyles =
     evaluation.status === "APPROVED"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+      ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
       : evaluation.status === "REVISION_REQUIRED"
-        ? "border-orange-200 bg-orange-50 text-orange-900"
-        : "border-red-200 bg-red-50 text-red-900";
+        ? "border-orange-200 bg-orange-400/10 text-orange-200"
+        : "border-red-400/20 bg-red-400/10 text-red-200";
 
   return (
-    <div className="mt-8 space-y-6 border-t border-slate-200 pt-7">
+    <div className="mt-8 space-y-6 border-t border-white/10 pt-7">
       {/* VERIFICATION SUMMARY */}
       <section>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-medium tracking-wide text-slate-500">
+            <p className="text-xs font-medium tracking-wide text-[#969eaf]">
               TRUSTLAYER / VERIFICATION
             </p>
 
-            <h4 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+            <h4 className="mt-2 text-xl font-semibold tracking-tight text-slate-100">
               Verification result
             </h4>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-[#969eaf]">
               AI assessment and supporting source-level evidence
             </p>
           </div>
@@ -177,19 +177,19 @@ export default function EvaluationResult({
           <Metric label="AI confidence" value={`${confidencePercentage}%`} />
         </div>
 
-        <div className="mt-4 border border-slate-200 bg-white p-5">
-          <p className="text-sm font-semibold text-slate-900">
+        <div className="mt-4 border border-white/10 bg-[#171a21] p-5">
+          <p className="text-sm font-semibold text-slate-100">
             Verification summary
           </p>
 
-          <p className="mt-2 text-sm leading-6 text-slate-600">
+          <p className="mt-2 text-sm leading-6 text-slate-400">
             {evaluation.summary}
           </p>
         </div>
       </section>
 
       {/* ARTIFACT ANALYSIS */}
-      <section className="overflow-hidden border border-[#1b2940] bg-[#101827] text-white">
+      <section className="overflow-hidden border border-[#1b2940] bg-[#101216] text-white">
         <div className="border-b border-white/10 px-5 py-5 sm:px-6">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -410,7 +410,7 @@ export default function EvaluationResult({
                 {artifact.sha256}
               </p>
 
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-xs text-[#969eaf]">
                 Fingerprint of the submitted content used for this analysis. It
                 identifies the content; it does not certify its correctness.
               </p>
@@ -422,11 +422,11 @@ export default function EvaluationResult({
       {/* AI CRITERIA RESULTS */}
       <section>
         <div className="flex items-center justify-between gap-3">
-          <h4 className="text-base font-semibold text-slate-950">
+          <h4 className="text-base font-semibold text-slate-100">
             Acceptance criteria results
           </h4>
 
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-[#969eaf]">
             {
               evaluation.criteria_results.filter((result) => result.passed)
                 .length
@@ -436,7 +436,7 @@ export default function EvaluationResult({
           </span>
         </div>
 
-        <div className="mt-3 divide-y divide-slate-200 border-y border-slate-200">
+        <div className="mt-3 divide-y divide-white/10 border-y border-white/10">
           {evaluation.criteria_results.map((result, index) => (
             <div key={index} className="flex gap-3 py-4">
               <span
@@ -448,11 +448,11 @@ export default function EvaluationResult({
               </span>
 
               <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-900">
+                <p className="text-sm font-medium text-slate-100">
                   {result.requirement}
                 </p>
 
-                <p className="mt-1 text-sm leading-6 text-slate-600">
+                <p className="mt-1 text-sm leading-6 text-slate-400">
                   {result.evidence}
                 </p>
               </div>

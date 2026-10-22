@@ -60,45 +60,45 @@ export default async function ActivityPage({ params }: PageProps) {
 
   return (
     <main
-      className="min-h-screen bg-[#f6f5f2] text-slate-950"
-      style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
+      className="min-h-screen bg-[#0d0f13] text-slate-100"
+      style={{ fontFamily: "var(--font-geist-sans), Arial, sans-serif" }}
     >
       <div className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
-        <p className="text-sm text-slate-500">Project activity</p>
+        <p className="text-sm text-[#969eaf]">Project activity</p>
 
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">Activity</h1>
 
-        <p className="mt-3 text-sm leading-7 text-slate-600">
+        <p className="mt-3 text-sm leading-7 text-slate-400">
           A record of payments, submissions, verification decisions, disputes,
           and other project events.
         </p>
 
-        <section className="mt-10 border-y border-slate-200">
+        <section className="mt-10 border-y border-white/10">
           {events.length > 0 ? (
-            <div className="divide-y divide-slate-200">
+            <div className="divide-y divide-white/10">
               {events.map((event) => (
                 <div
                   key={event.id}
                   className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
-                    <p className="text-sm font-medium text-slate-950">
+                    <p className="text-sm font-medium text-slate-100">
                       {event.message}
                     </p>
 
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-[#969eaf]">
                       {formatStatus(event.event_type)}
                     </p>
                   </div>
 
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-[#969eaf]">
                     {formatDate(event.created_at)}
                   </p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="py-8 text-sm text-slate-500">
+            <p className="py-8 text-sm text-[#969eaf]">
               No project activity has been recorded yet.
             </p>
           )}
