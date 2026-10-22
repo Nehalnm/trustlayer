@@ -84,8 +84,8 @@ client/freelancer permissions. See `database-hardening.md` for verification deta
 
 ## 2026-10-22 — Dark interface and existing-payment reconciliation
 
-Status: implemented locally; prepared for a separate draft review on
-`codex/dark-ui-payment-recovery`. Not merged or deployed.
+Status: implemented in [draft PR #3](https://github.com/Nehalnm/trustlayer/pull/3)
+on `codex/dark-ui-payment-recovery`. Not merged or deployed.
 
 ### Problem
 
