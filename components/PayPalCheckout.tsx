@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -85,27 +85,13 @@ function CardFieldsForm({
     error: submitError,
   } = usePayPalCardFieldsOneTimePaymentSession();
 
-  useEffect(() => {
-    if (cardFieldsError) {
-      setError(cardFieldsError.message);
-    }
-  }, [cardFieldsError]);
+  const authorizationStarted = useRef(false);
+  const displayedError = error || cardFieldsError?.message || submitError?.message ||
+    (submitResponse?.state === "failed" ? submitResponse.data?.message || "PayPal card payment failed." : null);
 
   useEffect(() => {
-    if (submitError) {
-      setError(submitError.message);
-      setIsSubmitting(false);
-    }
-  }, [submitError]);
-
-  useEffect(() => {
-    if (!submitResponse) {
-      return;
-    }
-
-    const message = submitResponse.data?.message;
-
-    if (submitResponse.state === "succeeded") {
+    if (submitResponse?.state === "succeeded" && !authorizationStarted.current) {
+      authorizationStarted.current = true;
       authorizeMilestonePayment(milestoneId)
         .then(() => {
           onPaymentProtected();
@@ -124,11 +110,6 @@ function CardFieldsForm({
         });
     }
 
-    if (submitResponse.state === "failed") {
-      setError(message || "PayPal card payment failed.");
-
-      setIsSubmitting(false);
-    }
   }, [submitResponse, milestoneId, onPaymentProtected]);
 
   const handleSubmit = async () => {
@@ -156,6 +137,8 @@ function CardFieldsForm({
           : "Unable to process payment.",
       );
 
+      setIsSubmitting(false);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -215,17 +198,17 @@ function CardFieldsForm({
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={isSubmitting || !!cardFieldsError}
+        disabled={isSubmitting || !!cardFieldsError || submitResponse?.state === "succeeded"}
         className="w-full rounded-xl bg-blue-600 px-5 py-3.5 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isSubmitting ? "Protecting payment..." : "Pay by card"}
       </button>
 
-      {error && (
+      {displayedError && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           <p className="font-semibold">Card payment error</p>
 
-          <p className="mt-1">{error}</p>
+          <p className="mt-1">{displayedError}</p>
         </div>
       )}
     </div>
@@ -339,13 +322,13 @@ export default function PayPalCheckout({ milestoneId }: PayPalCheckoutProps) {
       });
   }, []);
 
-  const handlePaymentProtected = () => {
+  const handlePaymentProtected = useCallback(() => {
     setPaymentProtected(true);
 
     setTimeout(() => {
       router.refresh();
     }, 700);
-  };
+  }, [router]);
 
   if (tokenError) {
     return (

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { createClient as createUserClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { authorizePayPalOrder } from "@/lib/paypal/orders";
 
@@ -16,12 +17,30 @@ export async function POST(
 
     if (!milestoneId) {
       return NextResponse.json(
-        { error: "Missing milestone ID" },
+        { error: "Missing milestone ID." },
         { status: 400 },
       );
     }
 
+    // 1. Authenticate the caller.
+
+    const userSupabase = await createUserClient();
+
+    const {
+      data: { user },
+      error: authError,
+    } = await userSupabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "You must be signed in to authorize a payment." },
+        { status: 401 },
+      );
+    }
+
     const supabase = createAdminClient();
+
+    // 2. Load the milestone and its existing PayPal payment details.
 
     const { data: milestone, error: milestoneError } = await supabase
       .from("milestones")
@@ -35,10 +54,40 @@ export async function POST(
       console.error("Milestone lookup error:", milestoneError);
 
       return NextResponse.json(
-        { error: "Milestone not found" },
+        { error: "Milestone not found." },
         { status: 404 },
       );
     }
+
+    // 3. Verify access through the signed-in user's RLS policies.
+
+    const { data: accessibleProject, error: projectAccessError } =
+      await userSupabase
+        .from("projects")
+        .select("id")
+        .eq("id", milestone.project_id)
+        .eq("created_by", user.id)
+        .maybeSingle();
+
+    if (projectAccessError) {
+      console.error("Project access check failed:", projectAccessError);
+
+      return NextResponse.json(
+        { error: "Could not verify project access." },
+        { status: 500 },
+      );
+    }
+
+    if (!accessibleProject) {
+      return NextResponse.json(
+        {
+          error: "You are not authorized to authorize this payment.",
+        },
+        { status: 403 },
+      );
+    }
+
+    // 4. Require an existing PayPal order.
 
     if (!milestone.paypal_order_id) {
       return NextResponse.json(
@@ -49,12 +98,28 @@ export async function POST(
       );
     }
 
+    // 5. Return the existing authorization for safe retries.
+
     if (milestone.paypal_authorization_id) {
       return NextResponse.json({
         success: true,
         authorizationId: milestone.paypal_authorization_id,
+        alreadyAuthorized: true,
       });
     }
+
+    // 6. Only a pending milestone can receive a new authorization.
+
+    if (milestone.status !== "PENDING") {
+      return NextResponse.json(
+        {
+          error: "This milestone is not available for payment authorization.",
+        },
+        { status: 409 },
+      );
+    }
+
+    // 7. Authorize the existing PayPal order.
 
     const authorization = await authorizePayPalOrder(milestone.paypal_order_id);
 
@@ -62,36 +127,47 @@ export async function POST(
       authorization.purchaseUnits?.[0]?.payments?.authorizations?.[0]?.id;
 
     if (!authorizationId) {
-      console.error("PayPal authorization response:", authorization);
+      console.error(
+        "PayPal authorization response did not include an authorization ID.",
+      );
 
       return NextResponse.json(
         {
           error:
-            "PayPal authorized the order, but no authorization ID was returned.",
+            "PayPal returned no authorization ID. Reconcile the payment state before retrying.",
         },
-        { status: 500 },
+        { status: 502 },
       );
     }
 
-    const { error: updateError } = await supabase
+    // 8. Save the authorization only if the milestone is still pending
+    // and does not already have another recorded authorization.
+
+    const { data: updatedMilestone, error: updateError } = await supabase
       .from("milestones")
       .update({
         paypal_authorization_id: authorizationId,
         status: "FUNDED",
       })
-      .eq("id", milestoneId);
+      .eq("id", milestoneId)
+      .eq("status", "PENDING")
+      .is("paypal_authorization_id", null)
+      .select("id")
+      .maybeSingle();
 
-    if (updateError) {
-      console.error("Failed to update milestone:", updateError);
+    if (updateError || !updatedMilestone) {
+      console.error("Failed to persist PayPal authorization:", updateError);
 
       return NextResponse.json(
         {
           error:
-            "Payment was authorized, but the milestone could not be updated.",
+            "PayPal may have authorized the payment, but the milestone update did not complete. Reconciliation is required before retrying.",
         },
-        { status: 500 },
+        { status: 409 },
       );
     }
+
+    // 9. Record the authorization event.
 
     const { error: activityError } = await supabase
       .from("activity_events")
@@ -99,16 +175,20 @@ export async function POST(
         project_id: milestone.project_id,
         milestone_id: milestone.id,
         event_type: "PAYMENT_AUTHORIZED",
-        message: "Milestone payment was authorized and protected by PayPal.",
+        message: "Milestone payment was authorized by PayPal.",
         metadata: {
           paypalOrderId: milestone.paypal_order_id,
           paypalAuthorizationId: authorizationId,
+          authorizedBy: user.id,
         },
       });
 
     if (activityError) {
       console.error("Activity event error:", activityError);
     }
+
+    // 10. Return the authorization result.
+    // Authorization does not capture or release the funds.
 
     return NextResponse.json({
       success: true,

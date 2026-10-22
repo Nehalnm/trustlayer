@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireProjectAccess } from "@/lib/auth/project-access";
 
 type PageProps = {
   params: Promise<{
@@ -32,6 +33,8 @@ function formatDate(date: string) {
 
 export default async function ActivityPage({ params }: PageProps) {
   const { id } = await params;
+
+  await requireProjectAccess(id);
 
   const supabase = createAdminClient();
 
