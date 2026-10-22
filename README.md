@@ -90,4 +90,6 @@ fixtures and rehearse; do not weaken the policy to force an approval.
   blindly retry an uncertain capture.
 - Legacy projects without an owner stay inaccessible until ownership is reviewed.
 
-The reviewed database-hardening SQL in `docs/sql/` is not applied automatically.
+Database-hardening migration `20261022122800` was applied and verified on the
+hosted project. The SQL in `docs/sql/` is retained as a record; it is not run
+automatically by the app. See [database verification](docs/database-hardening.md).

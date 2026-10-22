@@ -1,4 +1,6 @@
--- REVIEW SCRIPT ONLY. Not applied to the hosted database.
+-- Applied to hosted TrustLayer as migration 20261022122800 on 2026-10-22.
+-- Migration: harden_browser_table_grants_and_trigger_search_path.
+-- Retained as a readable record; do not create a second migration for this SQL.
 -- Verified against the TrustLayer public schema on 2026-10-22.
 -- Browser clients only read owned records; authenticated API handlers write
 -- using service_role. This keeps existing SELECT policies intact.
@@ -31,4 +33,4 @@ SELECT c.relname, r.rolname,
 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
 CROSS JOIN pg_roles r
 WHERE n.nspname = 'public' AND c.relkind = 'r'
-  AND r.rolname IN ('anon', 'authenticated');
+  AND r.rolname IN ('anon', 'authenticated', 'service_role');

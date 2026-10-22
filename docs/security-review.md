@@ -11,16 +11,20 @@ Read-only transactions checked anonymous isolation across all seven tables
 and owner visibility on projects. These passed. They do not replace HTTP
 integration tests with two independent signed-in accounts.
 
-All seven tables currently grant excessive privileges (including TRUNCATE)
-to anon and authenticated roles. Row policies block ordinary row writes,
-but grants should still match the application's read-only browser model.
-`sql/review-database-hardening.sql` revokes browser grants, restores only
-authenticated application SELECT, and pins the timestamp trigger's search path.
-This is a review script, not an applied migration. Existing policies remain.
+At the initial inspection, all seven tables granted excessive privileges
+(including TRUNCATE) to anon and authenticated roles. This was corrected by
+hosted migration `20261022122800`,
+`harden_browser_table_grants_and_trigger_search_path`, on 2026-10-22.
+`sql/review-database-hardening.sql` records the applied statements: browser
+grants were revoked, only authenticated application SELECT was restored, and
+the timestamp trigger's search path was pinned. Existing policies are unchanged.
+See [verification results](database-hardening.md).
 
-Supabase advisors reported a mutable search path on `update_updated_at` and
-disabled leaked-password protection. The ledger's no-policy notice is expected.
-Password protection needs separate Auth configuration review.
+The mutable-search-path advisor warning is now cleared. Supabase still reports
+[disabled leaked-password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+The ledger's [no-policy notice](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)
+is expected because all browser access is revoked. Password protection needs
+separate Auth configuration review.
 
 Six legacy projects have NULL created_by. They remain inaccessible to owners.
 Do not assign these to an arbitrary user or weaken RLS to expose them.
@@ -42,7 +46,7 @@ Do not assign these to an arbitrary user or weaken RLS to expose them.
 
 ## Remaining work, in order
 
-1. Review and apply the grants/search-path script as a recorded hosted migration.
+1. Completed: apply and verify the grants/search-path hardening as hosted migration 20261022122800.
 2. Add durable operation records and controlled recovery for interrupted
    submissions, verifications, authorizations, and captures. New shared-lock
    failures intentionally remain blocked; never clear a lock based on age alone.
