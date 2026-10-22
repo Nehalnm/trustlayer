@@ -78,9 +78,9 @@ export default function VerifyMilestone({ milestoneId }: VerifyMilestoneProps) {
   }
 
   return (
-    <div className="mt-7 rounded-2xl border border-purple-200 bg-purple-50 p-6">
+    <div className="mt-7 rounded-2xl border border-purple-400/20 bg-purple-400/10 p-6">
       <div className="mb-5">
-        <p className="text-sm font-bold uppercase tracking-wide text-purple-700">
+        <p className="text-sm font-bold uppercase tracking-wide text-purple-300">
           AI verification
         </p>
 
@@ -104,7 +104,7 @@ export default function VerifyMilestone({ milestoneId }: VerifyMilestoneProps) {
       </button>
 
       {error && (
-        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+        <div className="mt-5 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-medium text-red-300">
           {error}
         </div>
       )}
@@ -112,46 +112,46 @@ export default function VerifyMilestone({ milestoneId }: VerifyMilestoneProps) {
       {evaluation && (
         <div className="mt-6 space-y-5">
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-purple-200 bg-white p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div className="rounded-xl border border-purple-400/20 bg-[#171a21] p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#969eaf]">
                 Result
               </p>
-              <p className="mt-1 text-lg font-bold text-slate-900">
+              <p className="mt-1 text-lg font-bold text-slate-100">
                 {getStatusLabel(evaluation.status)}
               </p>
             </div>
 
-            <div className="rounded-xl border border-purple-200 bg-white p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div className="rounded-xl border border-purple-400/20 bg-[#171a21] p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#969eaf]">
                 Score
               </p>
-              <p className="mt-1 text-lg font-bold text-slate-900">
+              <p className="mt-1 text-lg font-bold text-slate-100">
                 {Math.round(evaluation.score * 100)}%
               </p>
             </div>
 
-            <div className="rounded-xl border border-purple-200 bg-white p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div className="rounded-xl border border-purple-400/20 bg-[#171a21] p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#969eaf]">
                 AI confidence
               </p>
-              <p className="mt-1 text-lg font-bold text-slate-900">
+              <p className="mt-1 text-lg font-bold text-slate-100">
                 {Math.round(evaluation.confidence * 100)}%
               </p>
             </div>
           </div>
 
-          <div className="rounded-xl border border-purple-200 bg-white p-4">
-            <p className="text-sm font-semibold text-slate-900">
+          <div className="rounded-xl border border-purple-400/20 bg-[#171a21] p-4">
+            <p className="text-sm font-semibold text-slate-100">
               Verification summary
             </p>
-            <p className="mt-2 text-sm leading-6 text-slate-700">
+            <p className="mt-2 text-sm leading-6 text-slate-300">
               {evaluation.summary}
             </p>
           </div>
 
           {evaluation.criteria_results?.length > 0 && (
             <div>
-              <p className="mb-3 text-sm font-semibold text-slate-900">
+              <p className="mb-3 text-sm font-semibold text-slate-100">
                 Acceptance criteria
               </p>
 
@@ -159,25 +159,25 @@ export default function VerifyMilestone({ milestoneId }: VerifyMilestoneProps) {
                 {evaluation.criteria_results.map((criterion, index) => (
                   <div
                     key={`${criterion.requirement}-${index}`}
-                    className="rounded-xl border border-slate-200 bg-white p-4"
+                    className="rounded-xl border border-white/10 bg-[#171a21] p-4"
                   >
                     <div className="flex items-start gap-3">
                       <span
                         className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                           criterion.passed
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-red-100 text-red-700"
+                            ? "bg-emerald-400/15 text-emerald-300"
+                            : "bg-red-400/15 text-red-300"
                         }`}
                       >
                         {criterion.passed ? "✓" : "✕"}
                       </span>
 
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className="text-sm font-semibold text-slate-100">
                           {criterion.requirement}
                         </p>
 
-                        <p className="mt-1 text-sm leading-6 text-slate-600">
+                        <p className="mt-1 text-sm leading-6 text-slate-400">
                           {criterion.evidence}
                         </p>
                       </div>
@@ -188,7 +188,7 @@ export default function VerifyMilestone({ milestoneId }: VerifyMilestoneProps) {
             </div>
           )}
 
-          <div className="rounded-xl border border-purple-200 bg-purple-100/60 px-4 py-3 text-sm text-purple-900">
+          <div className="rounded-xl border border-purple-400/20 bg-purple-400/10 px-4 py-3 text-sm text-purple-200">
             {evaluation.status === "APPROVED"
               ? "All required checks passed. The milestone can proceed to payment release."
               : evaluation.status === "REVISION_REQUIRED"

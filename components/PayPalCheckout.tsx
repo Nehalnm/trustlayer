@@ -16,6 +16,7 @@ import {
 
 type PayPalCheckoutProps = {
   milestoneId: string;
+  amount: string;
 };
 
 async function getClientToken(): Promise<string> {
@@ -146,15 +147,17 @@ function CardFieldsForm({
   return (
     <div className="space-y-4">
       <div>
-        <label className="mb-2 block text-sm font-semibold text-slate-800">
+        <label className="mb-2 block text-sm font-semibold text-slate-200">
           Card number
         </label>
 
         <PayPalCardNumberField
           placeholder="Card number"
+          ariaLabel="Card number"
+          style={{ input: { color: "#eef0f6", fontSize: "14px", background: "transparent" }, "input::placeholder": { color: "#9099ab" } }}
           containerStyles={{
             height: "48px",
-            border: "1px solid #cbd5e1",
+            border: "1px solid #ffffff26",
             borderRadius: "10px",
             padding: "0 12px",
           }}
@@ -163,15 +166,17 @@ function CardFieldsForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-800">
+          <label className="mb-2 block text-sm font-semibold text-slate-200">
             Expiry
           </label>
 
           <PayPalCardExpiryField
             placeholder="MM/YY"
+            ariaLabel="Card expiry date"
+            style={{ input: { color: "#eef0f6", fontSize: "14px", background: "transparent" }, "input::placeholder": { color: "#9099ab" } }}
             containerStyles={{
               height: "48px",
-              border: "1px solid #cbd5e1",
+              border: "1px solid #ffffff26",
               borderRadius: "10px",
               padding: "0 12px",
             }}
@@ -179,15 +184,17 @@ function CardFieldsForm({
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-800">
+          <label className="mb-2 block text-sm font-semibold text-slate-200">
             CVV
           </label>
 
           <PayPalCardCvvField
             placeholder="CVV"
+            ariaLabel="Card security code"
+            style={{ input: { color: "#eef0f6", fontSize: "14px", background: "transparent" }, "input::placeholder": { color: "#9099ab" } }}
             containerStyles={{
               height: "48px",
-              border: "1px solid #cbd5e1",
+              border: "1px solid #ffffff26",
               borderRadius: "10px",
               padding: "0 12px",
             }}
@@ -205,7 +212,7 @@ function CardFieldsForm({
       </button>
 
       {displayedError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        <div className="rounded-lg border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">
           <p className="font-semibold">Card payment error</p>
 
           <p className="mt-1">{displayedError}</p>
@@ -283,13 +290,13 @@ function PayPalButton({
       />
 
       {isAuthorizing && (
-        <p className="text-center text-sm text-slate-600">
+        <p className="text-center text-sm text-slate-400">
           Protecting your milestone payment...
         </p>
       )}
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        <div className="rounded-lg border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">
           <p className="font-semibold">PayPal payment error</p>
 
           <p className="mt-1">{error}</p>
@@ -299,7 +306,7 @@ function PayPalButton({
   );
 }
 
-export default function PayPalCheckout({ milestoneId }: PayPalCheckoutProps) {
+export default function PayPalCheckout({ milestoneId, amount }: PayPalCheckoutProps) {
   const router = useRouter();
 
   const [clientToken, setClientToken] = useState<string | null>(null);
@@ -332,7 +339,7 @@ export default function PayPalCheckout({ milestoneId }: PayPalCheckoutProps) {
 
   if (tokenError) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+      <div className="rounded-lg border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">
         <p className="font-semibold">PayPal initialization failed</p>
 
         <p className="mt-1">{tokenError}</p>
@@ -342,7 +349,7 @@ export default function PayPalCheckout({ milestoneId }: PayPalCheckoutProps) {
 
   if (!clientToken) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-700">
+      <div className="rounded-xl border border-white/10 bg-white/[0.025] px-5 py-4 text-sm text-slate-300">
         Loading secure PayPal checkout...
       </div>
     );
@@ -350,10 +357,10 @@ export default function PayPalCheckout({ milestoneId }: PayPalCheckoutProps) {
 
   if (paymentProtected) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-        <p className="font-semibold text-emerald-900">✓ Payment protected</p>
+      <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-5 py-4">
+        <p className="font-semibold text-emerald-200">✓ Payment protected</p>
 
-        <p className="mt-1 text-sm text-emerald-800">
+        <p className="mt-1 text-sm text-emerald-200">
           Payment authorized. Updating the project...
         </p>
       </div>
@@ -371,7 +378,7 @@ export default function PayPalCheckout({ milestoneId }: PayPalCheckoutProps) {
       <div className="space-y-6">
         {/* PayPal */}
         <div>
-          <p className="mb-3 text-sm font-semibold text-slate-900">
+          <p className="mb-3 text-sm font-semibold text-slate-100">
             Pay with PayPal
           </p>
 
@@ -383,24 +390,24 @@ export default function PayPalCheckout({ milestoneId }: PayPalCheckoutProps) {
 
         {/* Divider */}
         <div className="flex items-center gap-3">
-          <div className="h-px flex-1 bg-slate-200" />
+          <div className="h-px flex-1 bg-white/10" />
 
           <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
             or
           </span>
 
-          <div className="h-px flex-1 bg-slate-200" />
+          <div className="h-px flex-1 bg-white/10" />
         </div>
 
         {/* Card */}
         <div>
-          <p className="mb-3 text-sm font-semibold text-slate-900">
+          <p className="mb-3 text-sm font-semibold text-slate-100">
             Pay by card
           </p>
 
           <PayPalCardFieldsProvider
             amount={{
-              value: "0.00",
+              value: amount,
               currencyCode: "USD",
             }}
           >

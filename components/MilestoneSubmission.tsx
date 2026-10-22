@@ -65,13 +65,13 @@ export default function MilestoneSubmission({
   }
 
   return (
-    <section className="mt-7 border-t border-slate-200 pt-7">
+    <section className="mt-7 border-t border-white/10 pt-7">
       <div className="mb-6">
-        <p className="text-lg font-semibold tracking-tight text-slate-950">
+        <p className="text-lg font-semibold tracking-tight text-slate-100">
           Submit your deliverable
         </p>
 
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
           Submit the completed work. TrustLayer will compare it with the
           milestone requirements before payment can be released.
         </p>
@@ -81,7 +81,7 @@ export default function MilestoneSubmission({
         <div>
           <label
             htmlFor={`submission-url-${milestoneId}`}
-            className="mb-2 block text-sm font-medium text-slate-800"
+            className="mb-2 block text-sm font-medium text-slate-200"
           >
             Submission URL
           </label>
@@ -92,14 +92,14 @@ export default function MilestoneSubmission({
             value={submissionUrl}
             onChange={(event) => setSubmissionUrl(event.target.value)}
             placeholder="https://github.com/..."
-            className="w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+            className="w-full border border-white/15 bg-[#171a21] px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-slate-500"
           />
         </div>
 
         <div>
           <label
             htmlFor={`submission-content-${milestoneId}`}
-            className="mb-2 block text-sm font-medium text-slate-800"
+            className="mb-2 block text-sm font-medium text-slate-200"
           >
             Deliverable content
           </label>
@@ -110,14 +110,14 @@ export default function MilestoneSubmission({
             onChange={(event) => setSubmissionContent(event.target.value)}
             placeholder="Paste or describe the actual deliverable..."
             rows={8}
-            className="w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+            className="w-full border border-white/15 bg-[#171a21] px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-slate-500"
           />
         </div>
 
         <div>
           <label
             htmlFor={`submission-notes-${milestoneId}`}
-            className="mb-2 block text-sm font-medium text-slate-800"
+            className="mb-2 block text-sm font-medium text-slate-200"
           >
             Notes
           </label>
@@ -128,18 +128,18 @@ export default function MilestoneSubmission({
             onChange={(event) => setNotes(event.target.value)}
             placeholder="Anything the client or verifier should know..."
             rows={3}
-            className="w-full border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+            className="w-full border border-white/15 bg-[#171a21] px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-slate-500"
           />
         </div>
 
         {error && (
-          <div className="border-l-2 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="border-l-2 border-red-500 bg-red-400/10 px-4 py-3 text-sm text-red-300">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="border-l-2 border-emerald-500 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="border-l-2 border-emerald-500 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-300">
             {success}
           </div>
         )}
@@ -148,7 +148,7 @@ export default function MilestoneSubmission({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? "Submitting..." : "Submit for verification"}
           </button>

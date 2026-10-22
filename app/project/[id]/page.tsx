@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
 
 import OpenDispute from "@/components/OpenDispute";
 import MilestoneInsights from "@/components/MilestoneInsights";
@@ -6,6 +7,7 @@ import MilestoneSubmission from "@/components/MilestoneSubmission";
 import PaymentProtectionBanner from "@/components/PaymentProtectionBanner";
 import PayPalCheckout from "@/components/PayPalCheckout";
 import ReleasePayment from "@/components/ReleasePayment";
+import PaymentRecovery from "@/components/PaymentRecovery";
 import VerifyMilestone from "@/components/VerifyMilestone";
 import { createClient as createUserClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -26,6 +28,7 @@ type Milestone = {
   paypal_order_id: string | null;
   paypal_authorization_id: string | null;
   paypal_capture_id: string | null;
+  payment_release_locked_at: string | null;
 };
 
 type ActivityEvent = {
@@ -70,27 +73,27 @@ function formatDate(date: string) {
 function getStatusStyle(status: string) {
   switch (status) {
     case "PENDING":
-      return "bg-slate-100 text-slate-600";
+      return "bg-white/5 text-slate-400";
 
     case "FUNDED":
-      return "bg-blue-50 text-blue-700";
+      return "bg-blue-500/10 text-blue-300";
 
     case "SUBMITTED":
     case "UNDER_REVIEW":
-      return "bg-violet-50 text-violet-700";
+      return "bg-violet-400/10 text-violet-300";
 
     case "REVISION_REQUIRED":
-      return "bg-orange-50 text-orange-700";
+      return "bg-orange-400/10 text-orange-300";
 
     case "APPROVED":
     case "PAID":
-      return "bg-emerald-50 text-emerald-700";
+      return "bg-emerald-400/10 text-emerald-300";
 
     case "DISPUTED":
-      return "bg-red-50 text-red-700";
+      return "bg-red-400/10 text-red-300";
 
     default:
-      return "bg-slate-100 text-slate-600";
+      return "bg-white/5 text-slate-400";
   }
 }
 
@@ -167,8 +170,8 @@ function WorkflowStep({
             complete
               ? "border-emerald-500 bg-emerald-500 text-white"
               : active
-                ? "border-slate-950 bg-slate-950 text-white"
-                : "border-slate-300 bg-transparent text-slate-400"
+                ? "border-slate-950 bg-blue-500 text-white"
+                : "border-white/15 bg-transparent text-slate-400"
           }`}
         >
           {complete ? "✓" : ""}
@@ -176,21 +179,21 @@ function WorkflowStep({
 
         <span
           className={`whitespace-nowrap text-xs ${
-            active || complete ? "font-medium text-slate-800" : "text-slate-400"
+            active || complete ? "font-medium text-slate-200" : "text-slate-400"
           }`}
         >
           {label}
         </span>
       </div>
 
-      {label !== "Paid" && <div className="mx-3 h-px flex-1 bg-slate-200" />}
+      {label !== "Paid" && <div className="mx-3 h-px flex-1 bg-white/10" />}
     </div>
   );
 }
 
 function ProjectDescription({ description }: { description: string }) {
   return (
-    <div className="whitespace-pre-line text-sm leading-7 text-slate-600">
+    <div className="whitespace-pre-line text-sm leading-7 text-slate-400">
       {description}
     </div>
   );
@@ -296,21 +299,22 @@ export default async function ProjectPage({ params }: PageProps) {
 
   return (
     <main
-      className="min-h-screen bg-[#f6f5f2] text-slate-950"
+      className="min-h-screen bg-[#0d0f13] text-slate-100"
       style={{
-        fontFamily: "Arial, Helvetica, sans-serif",
+        fontFamily: "var(--font-geist-sans), Arial, sans-serif",
       }}
     >
       {/* Main content */}
       <div className="min-w-0 flex-1">
-        <header className="border-b border-slate-200 bg-[#f4f1eb]">
+        <header className="border-b border-white/10 bg-[#0d0f13]">
           <div className="mx-auto max-w-7xl px-5 py-4 sm:px-8">
-            <div className="flex justify-end">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 text-xs text-slate-500"><Link href="/projects" className="hover:text-white">Workspace</Link><span className="text-slate-700">/</span><span className="text-slate-300">Project overview</span></div>
               <div className="text-right">
-                <p className="text-sm font-medium text-slate-900">
+                <p className="text-sm font-medium text-slate-100">
                   Project workspace
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[#969eaf]">
                   {completedMilestones}/{projectMilestones.length} milestones
                   paid
                 </p>
@@ -324,12 +328,12 @@ export default async function ProjectPage({ params }: PageProps) {
           <section className="mb-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-4xl">
-                <div className="flex items-center gap-3 text-sm text-slate-500">
-                  <span className="h-2 w-2 bg-emerald-500" />
-                  Active project
+                <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.15em] text-slate-500">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-300" />
+                  {formatStatus(project.status)} project
                 </div>
 
-                <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+                <h1 className="mt-4 text-3xl font-medium tracking-[-0.05em] sm:text-[42px]">
                   {project.title}
                 </h1>
 
@@ -337,7 +341,7 @@ export default async function ProjectPage({ params }: PageProps) {
                   <ProjectDescription description={project.description ?? ""} />
                 </div>
 
-                <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-500">
+                <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#969eaf]">
                   <span>
                     {project.currency} {totalAmount.toFixed(2)} total
                   </span>
@@ -349,9 +353,9 @@ export default async function ProjectPage({ params }: PageProps) {
               </div>
 
               <div className="shrink-0 border-l-2 border-emerald-500 pl-4">
-                <p className="text-xs text-slate-500">Project status</p>
+                <p className="text-xs text-[#969eaf]">Project status</p>
 
-                <p className="mt-1 text-sm font-semibold text-slate-900">
+                <p className="mt-1 text-sm font-semibold text-slate-100">
                   {formatStatus(project.status)}
                 </p>
               </div>
@@ -368,34 +372,34 @@ export default async function ProjectPage({ params }: PageProps) {
           </div>
 
           {/* Payment summary */}
-          <section className="mb-10 border-y border-slate-200 py-5">
-            <div className="grid gap-6 sm:grid-cols-3">
-              <div>
-                <p className="text-xs text-slate-500">Protected or released</p>
+          <section className="mb-10">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="workspace-stat">
+                <p className="text-xs text-[#969eaf]">Protected or released</p>
 
                 <p className="mt-1 text-xl font-semibold">
                   {project.currency} {protectedAmount.toFixed(2)}
                 </p>
               </div>
 
-              <div>
-                <p className="text-xs text-slate-500">Project value</p>
+              <div className="workspace-stat">
+                <p className="text-xs text-[#969eaf]">Project value</p>
 
                 <p className="mt-1 text-xl font-semibold">
                   {project.currency} {totalAmount.toFixed(2)}
                 </p>
               </div>
 
-              <div>
-                <p className="text-xs text-slate-500">Payment progress</p>
+              <div className="workspace-stat">
+                <p className="text-xs text-[#969eaf]">Payment progress</p>
 
                 <p className="mt-1 text-xl font-semibold">{paymentProgress}%</p>
               </div>
             </div>
 
-            <div className="mt-5 h-1 bg-slate-200">
+            <div className="mt-5 h-1 bg-white/10">
               <div
-                className="h-1 bg-slate-950 transition-all"
+                className="h-1 bg-blue-500 transition-all"
                 style={{
                   width: `${paymentProgress}%`,
                 }}
@@ -407,21 +411,21 @@ export default async function ProjectPage({ params }: PageProps) {
           <section id="milestones" className="mb-5">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs text-slate-500">Project execution</p>
+                <p className="text-xs text-[#969eaf]">Project execution</p>
 
                 <h2 className="mt-1 text-2xl font-semibold tracking-tight">
                   Milestones
                 </h2>
               </div>
 
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-[#969eaf]">
                 {completedMilestones} of {projectMilestones.length} complete
               </p>
             </div>
           </section>
 
           {/* Milestones */}
-          <section className="border-t border-slate-200">
+          <section>
             {projectMilestones.map((milestone, index) => {
               const criteria = getCriteria(milestone.acceptance_criteria);
 
@@ -433,7 +437,7 @@ export default async function ProjectPage({ params }: PageProps) {
                 <details
                   key={milestone.id}
                   open={isInitiallyOpen}
-                  className="group border-b border-slate-200"
+                  className="group milestone-card"
                 >
                   <summary className="cursor-pointer list-none py-5">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -444,7 +448,7 @@ export default async function ProjectPage({ params }: PageProps) {
 
                         <div>
                           <div className="flex flex-wrap items-center gap-3">
-                            <h3 className="text-base font-semibold text-slate-950">
+                            <h3 className="text-base font-semibold text-slate-100">
                               {milestone.title}
                             </h3>
 
@@ -457,14 +461,14 @@ export default async function ProjectPage({ params }: PageProps) {
                             </span>
                           </div>
 
-                          <p className="mt-1 text-sm text-slate-500">
+                          <p className="mt-1 text-sm text-[#969eaf]">
                             Due day {milestone.deadline_day}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-5 sm:pl-4">
-                        <span className="text-sm font-semibold text-slate-950">
+                        <span className="text-sm font-semibold text-slate-100">
                           {project.currency}{" "}
                           {Number(milestone.amount).toFixed(2)}
                         </span>
@@ -477,13 +481,13 @@ export default async function ProjectPage({ params }: PageProps) {
                   </summary>
 
                   {/* Every milestone can open */}
-                  <div className="pb-9 pt-2">
+                  <div className="px-5 pb-7 pt-2 sm:px-6">
                     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.75fr)]">
                       {/* Main milestone workspace */}
                       <div>
-                        <div className="flex flex-col gap-2 border-b border-slate-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+                        <div className="flex flex-col gap-2 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
                           <div>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-[#969eaf]">
                               Milestone {index + 1} of{" "}
                               {projectMilestones.length}
                             </p>
@@ -493,7 +497,7 @@ export default async function ProjectPage({ params }: PageProps) {
                             </h4>
                           </div>
 
-                          <p className="text-sm text-slate-500">
+                          <p className="text-sm text-[#969eaf]">
                             {getCurrentAction(milestone.status)}
                           </p>
                         </div>
@@ -514,18 +518,18 @@ export default async function ProjectPage({ params }: PageProps) {
 
                         {/* Acceptance criteria */}
                         <div className="mt-8">
-                          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                          <div className="flex items-center justify-between border-b border-white/10 pb-3">
                             <h5 className="text-sm font-semibold">
                               Acceptance criteria
                             </h5>
 
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs text-[#969eaf]">
                               {criteria.length} requirements
                             </span>
                           </div>
 
                           {criteria.length > 0 ? (
-                            <div className="divide-y divide-slate-200">
+                            <div className="divide-y divide-white/10">
                               {criteria.map((criterion, criterionIndex) => (
                                 <div
                                   key={`${milestone.id}-${criterionIndex}`}
@@ -538,14 +542,14 @@ export default async function ProjectPage({ params }: PageProps) {
                                     )}
                                   </span>
 
-                                  <p className="text-sm leading-6 text-slate-700">
+                                  <p className="text-sm leading-6 text-slate-300">
                                     {criterion}
                                   </p>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="py-4 text-sm text-slate-500">
+                            <p className="py-4 text-sm text-[#969eaf]">
                               No acceptance criteria were recorded for this
                               milestone.
                             </p>
@@ -554,13 +558,13 @@ export default async function ProjectPage({ params }: PageProps) {
 
                         {/* PENDING */}
                         {milestone.status === "PENDING" && (
-                          <section className="mt-8 border-t border-slate-200 pt-7">
+                          <section className="mt-8 border-t border-white/10 pt-7">
                             <div className="mb-5">
                               <h5 className="text-lg font-semibold">
                                 Protect this milestone payment
                               </h5>
 
-                              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
                                 Authorize the PayPal payment first. The payment
                                 remains protected until the submitted work
                                 passes verification.
@@ -572,7 +576,7 @@ export default async function ProjectPage({ params }: PageProps) {
                               </p>
                             </div>
 
-                            <PayPalCheckout milestoneId={milestone.id} />
+                            <PayPalCheckout milestoneId={milestone.id} amount={Number(milestone.amount).toFixed(2)} />
                           </section>
                         )}
 
@@ -589,12 +593,12 @@ export default async function ProjectPage({ params }: PageProps) {
 
                         {/* SUBMITTED */}
                         {milestone.status === "SUBMITTED" && (
-                          <section className="mt-8 border-t border-slate-200 pt-7">
+                          <section className="mt-8 border-t border-white/10 pt-7">
                             <h5 className="text-lg font-semibold">
                               Ready for verification
                             </h5>
 
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
                               The deliverable has been submitted. Run
                               verification against the milestone requirements.
                             </p>
@@ -611,12 +615,12 @@ export default async function ProjectPage({ params }: PageProps) {
 
                         {/* UNDER REVIEW */}
                         {milestone.status === "UNDER_REVIEW" && (
-                          <section className="mt-8 border-t border-slate-200 pt-7">
+                          <section className="mt-8 border-t border-white/10 pt-7">
                             <h5 className="text-lg font-semibold">
                               Verification in progress
                             </h5>
 
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
                               TrustLayer is checking the submitted work against
                               the agreed requirements.
                             </p>
@@ -630,19 +634,20 @@ export default async function ProjectPage({ params }: PageProps) {
 
                         {/* APPROVED */}
                         {milestone.status === "APPROVED" && (
-                          <section className="mt-8 border-t border-slate-200 pt-7">
+                          <section className="mt-8 border-t border-white/10 pt-7">
                             <h5 className="text-lg font-semibold">
                               Verification passed
                             </h5>
 
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
                               The submission meets the acceptance criteria. The
                               deterministic payment policy can now decide
                               whether PayPal capture is allowed.
                             </p>
 
                             <div className="mt-6 flex flex-col gap-4 sm:flex-row">
-                              <ReleasePayment milestoneId={milestone.id} />
+                            <ReleasePayment milestoneId={milestone.id} locked={Boolean(milestone.payment_release_locked_at)} />
+                            {milestone.paypal_order_id && <PaymentRecovery milestoneId={milestone.id} locked={Boolean(milestone.payment_release_locked_at)} />}
 
                               <OpenDispute milestoneId={milestone.id} />
                             </div>
@@ -651,12 +656,12 @@ export default async function ProjectPage({ params }: PageProps) {
 
                         {/* PAID */}
                         {milestone.status === "PAID" && (
-                          <section className="mt-8 border-t border-slate-200 pt-7">
+                          <section className="mt-8 border-t border-white/10 pt-7">
                             <h5 className="text-lg font-semibold">
                               Milestone complete
                             </h5>
 
-                            <p className="mt-2 text-sm leading-6 text-slate-600">
+                            <p className="mt-2 text-sm leading-6 text-slate-400">
                               The work passed verification and the authorized
                               payment was captured through PayPal.
                             </p>
@@ -665,12 +670,12 @@ export default async function ProjectPage({ params }: PageProps) {
 
                         {/* DISPUTED */}
                         {milestone.status === "DISPUTED" && (
-                          <section className="mt-8 border-t border-red-200 pt-7">
-                            <h5 className="text-lg font-semibold text-red-900">
+                          <section className="mt-8 border-t border-red-400/20 pt-7">
+                            <h5 className="text-lg font-semibold text-red-200">
                               Milestone under dispute
                             </h5>
 
-                            <p className="mt-2 text-sm leading-6 text-red-800">
+                            <p className="mt-2 text-sm leading-6 text-red-200">
                               Payment is blocked until the dispute is resolved.
                             </p>
                           </section>
@@ -695,23 +700,23 @@ export default async function ProjectPage({ params }: PageProps) {
           </section>
 
           {/* Secondary information */}
-          <section className="mt-12 border-t border-slate-200">
+          <section className="mt-12 border-t border-white/10">
             {/* Contract */}
-            <details id="contract" className="border-b border-slate-200">
+            <details id="contract" className="border-b border-white/10">
               <summary className="cursor-pointer list-none py-5 text-sm font-semibold">
                 Contract details
               </summary>
 
               <div className="grid gap-8 pb-7 lg:grid-cols-2">
                 <div>
-                  <p className="text-sm leading-7 text-slate-600">
+                  <p className="text-sm leading-7 text-slate-400">
                     {contract.summary ||
                       "The structured contract was generated from the original project description."}
                   </p>
 
                   <div className="mt-5 flex gap-8 text-sm">
                     <div>
-                      <p className="text-xs text-slate-500">Budget</p>
+                      <p className="text-xs text-[#969eaf]">Budget</p>
 
                       <p className="mt-1 font-semibold">
                         {contract.currency || project.currency}{" "}
@@ -720,7 +725,7 @@ export default async function ProjectPage({ params }: PageProps) {
                     </div>
 
                     <div>
-                      <p className="text-xs text-slate-500">Duration</p>
+                      <p className="text-xs text-[#969eaf]">Duration</p>
 
                       <p className="mt-1 font-semibold">
                         {contract.deadlineDays ?? project.deadline_days ?? 0}{" "}
@@ -738,13 +743,13 @@ export default async function ProjectPage({ params }: PageProps) {
                       contract.ambiguities?.map((item, index) => (
                         <div
                           key={index}
-                          className="border-l-2 border-amber-400 pl-3 text-sm leading-6 text-slate-600"
+                          className="border-l-2 border-amber-400 pl-3 text-sm leading-6 text-slate-400"
                         >
                           {item}
                         </div>
                       ))
                     ) : (
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-[#969eaf]">
                         No major ambiguities were identified.
                       </p>
                     )}
@@ -754,7 +759,7 @@ export default async function ProjectPage({ params }: PageProps) {
             </details>
 
             {/* Risk flags */}
-            <details className="border-b border-slate-200">
+            <details className="border-b border-white/10">
               <summary className="cursor-pointer list-none py-5 text-sm font-semibold">
                 Risk flags
               </summary>
@@ -765,14 +770,14 @@ export default async function ProjectPage({ params }: PageProps) {
                     {contract.riskFlags?.map((risk, index) => (
                       <div
                         key={index}
-                        className="border-l-2 border-red-400 pl-3 text-sm leading-6 text-slate-600"
+                        className="border-l-2 border-red-400 pl-3 text-sm leading-6 text-slate-400"
                       >
                         {risk}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-[#969eaf]">
                     No major project risks were identified.
                   </p>
                 )}
@@ -780,14 +785,14 @@ export default async function ProjectPage({ params }: PageProps) {
             </details>
 
             {/* Activity */}
-            <details id="activity" className="border-b border-slate-200">
+            <details id="activity" className="border-b border-white/10">
               <summary className="cursor-pointer list-none py-5 text-sm font-semibold">
                 Activity
               </summary>
 
               <div className="pb-7">
                 {events.length > 0 ? (
-                  <div className="divide-y divide-slate-200">
+                  <div className="divide-y divide-white/10">
                     {events.map((event) => (
                       <div
                         key={event.id}
@@ -796,19 +801,19 @@ export default async function ProjectPage({ params }: PageProps) {
                         <div>
                           <p className="text-sm font-medium">{event.message}</p>
 
-                          <p className="mt-1 text-xs text-slate-500">
+                          <p className="mt-1 text-xs text-[#969eaf]">
                             {formatStatus(event.event_type)}
                           </p>
                         </div>
 
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-[#969eaf]">
                           {formatDate(event.created_at)}
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-[#969eaf]">
                     No activity has been recorded yet.
                   </p>
                 )}

@@ -14,11 +14,11 @@ export default async function ProjectLayout({
   const { id } = await params;
 
   return (
-    <div className="min-h-screen bg-[#f6f5f2] text-slate-950">
-      <div className="flex min-h-screen">
+    <div className="min-h-screen bg-[#0d0f13] text-slate-100">
+      <div className="flex min-h-screen flex-col lg:flex-row">
         <ProjectSidebar projectId={id} />
 
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="workspace-content min-w-0 flex-1">{children}</div>
       </div>
     </div>
   );

@@ -24,9 +24,9 @@ export default function SignOut() {
   }
 
   return <div>
-    <button onClick={signOut} disabled={busy} className="border border-slate-300 px-4 py-2 text-sm disabled:opacity-50">
+    <button onClick={signOut} disabled={busy} className="tl-btn-secondary disabled:opacity-50">
       {busy ? "Signing out…" : "Sign out"}
     </button>
-    {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
+    {error && <p role="alert" className="mt-2 text-sm text-red-300">{error}</p>}
   </div>;
 }

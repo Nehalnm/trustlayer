@@ -80,12 +80,17 @@ fixtures and rehearse; do not weaken the policy to force an approval.
 
 ## Current limitations
 
+The interface now uses the [dark design direction](docs/design-direction.md).
+Owner-initiated [payment reconciliation](docs/payment-recovery.md) can restore
+confirmed existing authorizations or captures. It never requests a new payment
+and does not clear uncertain operation locks.
+
 - Source analysis does not execute or render a website or prove visual correctness.
 - AI confidence is model-reported, not calibrated correctness probability.
 - The workflow is currently owner-operated; separate client/freelancer roles and
   freelancer payouts are not implemented.
-- Dispute resolution, authorization expiry, refunds/reversals, and interrupted
-  operation recovery remain incomplete.
+- Dispute resolution, authorization replacement, refunds/reversals, and general
+  interrupted-operation lock recovery remain incomplete.
 - Failed protected operations retain locks. Do not clear locks based on age or
   blindly retry an uncertain capture.
 - Legacy projects without an owner stay inaccessible until ownership is reviewed.

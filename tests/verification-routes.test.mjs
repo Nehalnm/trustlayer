@@ -15,6 +15,7 @@ function harness(decision = "APPROVED") {
     acceptance_criteria: ["Include a footer"], payment_release_locked_at: null,
     paypal_capture_id: null,
   };
+  let activityUnavailable = false;
   const tables = {
     milestones: [milestone], projects: [{ id: "project", created_by: "owner" }],
     submissions: [{ id: "submission", milestone_id: "milestone", version: 1,
@@ -36,6 +37,7 @@ function harness(decision = "APPROVED") {
     };
     async function execute(single) {
       if (action === "insert") {
+        if (table === "activity_events" && activityUnavailable) return { data: null, error: { message: "Activity storage unavailable" } };
         tables[table].push({ ...values });
         return { data: null, error: null };
       }
@@ -84,6 +86,7 @@ function harness(decision = "APPROVED") {
   }
   return {
     milestone, tables, complete, calls: () => calls, dependencies, loadRoute,
+    failActivity: () => { activityUnavailable = true; },
     run: loadRoute("verify"),
   };
 }
@@ -134,7 +137,7 @@ test("existing payment or dispute lock prevents verification", async () => {
 
 function releaseHarness() {
   const h = harness();
-  Object.assign(h.milestone, { status: "APPROVED", paypal_authorization_id: "authorization" });
+  Object.assign(h.milestone, { status: "APPROVED", paypal_authorization_id: "authorization", paypal_order_id: "order", amount: "500.00" });
   h.tables.projects[0].currency = "USD";
   h.tables.submissions[0].status = "APPROVED";
   h.tables.ai_evaluations.push({
@@ -149,6 +152,7 @@ function releaseHarness() {
   h.dependencies["@/lib/payment/complete-project"] = { completeProjectIfPaid: async () => { completions++; return true; } };
   h.dependencies["@/lib/paypal/orders"] = {
     captureAuthorizedPayPalPayment: async () => {
+      assert.ok(h.tables.activity_events.some(event => event.event_type === "PAYMENT_CAPTURE_STARTED"));
       captures++;
       // Model a webhook arriving before the capture response is saved.
       Object.assign(h.milestone, { status: "PAID", paypal_capture_id: "capture" });
@@ -174,4 +178,11 @@ test("AI_REVIEW dispute blocks release before PayPal is contacted", async () => 
   h.tables.disputes.push({ milestone_id: "milestone", status: "AI_REVIEW" });
   assert.equal((await h.release()).status, 409);
   assert.equal(h.captures(), 0);
+});
+
+test("capture is never requested when the durable intent cannot be recorded", async () => {
+  const h = releaseHarness(); h.failActivity();
+  assert.equal((await h.release()).status, 500);
+  assert.equal(h.captures(), 0);
+  assert.ok(h.milestone.payment_release_locked_at);
 });

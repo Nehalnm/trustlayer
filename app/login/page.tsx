@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import Brand from "@/components/Brand";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -82,7 +83,8 @@ export default function LoginPage() {
           ← Back to TrustLayer
         </Link>
 
-        <div className="mt-8 border border-white/10 bg-white/[0.04] p-7 sm:p-9">
+        <div className="tl-surface mt-8 p-7 sm:p-9">
+          <div className="mb-8"><Brand /></div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-blue-400">
             TrustLayer
           </p>
@@ -187,7 +189,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="mt-5 text-center text-xs leading-5 text-slate-500">
+        <p className="mt-5 text-center text-xs leading-5 text-[#969eaf]">
           AI verifies the work. Policy validates the release. PayPal executes
           the payment.
         </p>
