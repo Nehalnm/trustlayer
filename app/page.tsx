@@ -1,4 +1,6 @@
 import ContractBuilder from "@/components/ContractBuilder";
+import TrustHero from "@/components/TrustHero";
+import Link from "next/link";
 
 function WorkflowRow({
   number,
@@ -33,6 +35,8 @@ export default function Home() {
           </a>
 
           <div className="hidden items-center gap-8 text-sm text-slate-300 md:flex">
+            <Link href="/projects" className="transition hover:text-white">My projects</Link>
+            <Link href="/login" className="transition hover:text-white">Sign in</Link>
             <a href="#how-it-works" className="transition hover:text-white">
               How it works
             </a>
@@ -45,148 +49,11 @@ export default function Home() {
               Create project
             </a>
           </div>
-
-          <a
-            href="#contract"
-            className="bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
-          >
-            Get started
-          </a>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="border-b border-slate-200 bg-[#f4f1eb]">
-        <div className="mx-auto grid max-w-7xl gap-14 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-24">
-          <div>
-            <div className="mb-6 flex items-center gap-3 text-sm text-slate-500">
-              <span className="h-2 w-2 bg-emerald-500" />
-              Payment protection for freelance work
-            </div>
-
-            <h1 className="max-w-3xl text-5xl font-semibold leading-[1.04] tracking-[-0.04em] text-slate-950 md:text-6xl">
-              AI that verifies the work before the money moves.
-            </h1>
-
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-              TrustLayer turns a freelance agreement into measurable milestones,
-              verifies submitted work against those requirements, and protects
-              milestone payments through PayPal.
-            </p>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a
-                href="#contract"
-                className="bg-slate-950 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-slate-800"
-              >
-                Create a protected project
-              </a>
-
-              <a
-                href="#how-it-works"
-                className="border border-slate-300 bg-transparent px-6 py-3.5 text-center text-sm font-semibold text-slate-700 transition hover:bg-white"
-              >
-                See how it works
-              </a>
-            </div>
-
-            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-500">
-              <span>AI-generated milestones</span>
-              <span>PayPal authorization</span>
-              <span>Objective verification</span>
-            </div>
-          </div>
-
-          {/* Product preview */}
-          <div className="border border-slate-300 bg-white">
-            <div className="border-b border-slate-200 px-5 py-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500">Project</p>
-                  <h2 className="mt-1 text-lg font-semibold tracking-tight">
-                    StudyFlow Landing Page
-                  </h2>
-                </div>
-
-                <span className="text-xs font-medium text-emerald-700">
-                  In progress
-                </span>
-              </div>
-            </div>
-
-            <div className="p-5">
-              <div className="border border-slate-200 bg-[#f8f6f2] p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-slate-500">Payment protection</p>
-                    <p className="mt-1 text-xl font-semibold">$500.00</p>
-                  </div>
-
-                  <span className="text-sm font-semibold text-slate-950">
-                    50%
-                  </span>
-                </div>
-
-                <div className="mt-4 h-1 bg-slate-200">
-                  <div className="h-1 w-1/2 bg-slate-950" />
-                </div>
-
-                <p className="mt-4 text-xs leading-5 text-slate-500">
-                  Authorized through PayPal. Release follows milestone
-                  verification.
-                </p>
-              </div>
-
-              <div className="mt-5 divide-y divide-slate-200 border-y border-slate-200">
-                <div className="flex items-center justify-between py-4">
-                  <div>
-                    <p className="text-sm font-semibold">Milestone 1</p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Website structure and responsive layout
-                    </p>
-                  </div>
-
-                  <span className="text-xs font-medium text-emerald-700">
-                    Funded
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between py-4">
-                  <div>
-                    <p className="text-sm font-semibold">Milestone 2</p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Checkout and cart
-                    </p>
-                  </div>
-
-                  <span className="text-xs font-medium text-slate-500">
-                    Pending
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between py-4">
-                  <div>
-                    <p className="text-sm font-semibold">Verification</p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      5 requirements checked
-                    </p>
-                  </div>
-
-                  <span className="text-xs font-medium text-blue-700">
-                    Ready
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-5 flex items-center justify-between text-xs text-slate-500">
-                <span>AI recommendation</span>
-                <span>Policy decision</span>
-                <span>PayPal capture</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <TrustHero />
 
       {/* How it works */}
       <section

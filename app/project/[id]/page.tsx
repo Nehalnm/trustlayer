@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import OpenDispute from "@/components/OpenDispute";
 import MilestoneInsights from "@/components/MilestoneInsights";
@@ -7,6 +7,7 @@ import PaymentProtectionBanner from "@/components/PaymentProtectionBanner";
 import PayPalCheckout from "@/components/PayPalCheckout";
 import ReleasePayment from "@/components/ReleasePayment";
 import VerifyMilestone from "@/components/VerifyMilestone";
+import { createClient as createUserClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type PageProps = {
@@ -198,6 +199,36 @@ function ProjectDescription({ description }: { description: string }) {
 export default async function ProjectPage({ params }: PageProps) {
   const { id } = await params;
 
+  // 1. Require an authenticated user.
+  const userSupabase = await createUserClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await userSupabase.auth.getUser();
+
+  if (authError || !user) {
+    redirect("/login");
+  }
+
+  // 2. Check project access using the user's RLS permissions.
+  const { data: accessibleProject, error: accessError } = await userSupabase
+    .from("projects")
+    .select("id")
+    .eq("id", id)
+    .eq("created_by", user.id)
+    .maybeSingle();
+
+  if (accessError) {
+    console.error("Project access check failed:", accessError);
+    throw new Error("Could not verify project access.");
+  }
+
+  if (!accessibleProject) {
+    notFound();
+  }
+
+  // 3. Only load privileged project data after access is verified.
   const supabase = createAdminClient();
 
   const { data: project, error: projectError } = await supabase

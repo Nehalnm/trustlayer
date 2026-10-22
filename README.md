@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# TrustLayer
 
-## Getting Started
+**AI that verifies the work before the money moves.**
 
-First, run the development server:
+A PayPal AI Hackathon project built with Next.js, TypeScript, Tailwind,
+Supabase Auth/PostgreSQL, Gemini, and the PayPal Sandbox SDKs.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Trust model
+
+AI recommends. Policy validates. PayPal executes.
+
+1. Describe a project and generate a structured agreement with measurable criteria.
+2. Authorize each milestone through PayPal (authorization is not escrow).
+3. Submit actual deliverable source content, a URL, and notes.
+4. Analyze source structure and fingerprints, then evaluate criteria with Gemini.
+5. Validate the stored evaluation using deterministic release rules.
+6. Capture the authorization through the protected release endpoint.
+7. Reconcile verified PayPal webhooks and retain activity history.
+
+## Local development
+
+Use Node 24 LTS (tests require native TypeScript stripping).
+
+```powershell
+npm.cmd ci
+npm.cmd run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000, sign in, and visit `/projects` for your workspace.
+On systems without PowerShell script restrictions, `npm` also works.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create your own `.env.local` with these variable names; never commit its values:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Use |
+| --- | --- |
+| NEXT_PUBLIC_SUPABASE_URL | Supabase project URL |
+| NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY | Browser publishable key |
+| SUPABASE_SECRET_KEY | Server-only privileged key |
+| GEMINI_API_KEY | Server-only Gemini credential |
+| NEXT_PUBLIC_PAYPAL_CLIENT_ID | PayPal Sandbox application ID |
+| PAYPAL_CLIENT_SECRET | Server-only PayPal credential |
+| NEXT_PUBLIC_PAYPAL_ENVIRONMENT | Use `sandbox` for this demo |
+| PAYPAL_WEBHOOK_ID | Sandbox webhook registration ID |
 
-## Learn More
+Configure Supabase email confirmation to return to `/auth/callback` on your
+local or deployed origin. Configure PayPal Sandbox webhooks for the public
+`/api/webhooks/paypal` URL. Do not use production payment credentials for demos.
+The current app supports USD payment authorization only.
 
-To learn more about Next.js, take a look at the following resources:
+The existing hosted database was created outside this repository. This repo
+is not yet a complete database bootstrap. See [security review](docs/security-review.md)
+for the inspected schema, access model, and outstanding database work.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Checks
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Progress is tracked in the [hackathon roadmap](https://github.com/Nehalnm/trustlayer/issues/1)
+and the [development log](docs/development-log.md).
 
-## Deploy on Vercel
+```powershell
+npm.cmd test
+npm.cmd run lint -- app lib components tests
+npm.cmd run build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Tests mock all route dependencies; they never contact PayPal or Gemini.
+The build downloads Geist fonts from Google and requires internet access.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Demo walkthrough
+
+1. Sign in and create a small USD website project with specific source-verifiable criteria.
+2. Explain the generated scope, milestone amounts, and acceptance criteria.
+3. Authorize the chosen milestone using a Sandbox buyer.
+4. Submit incomplete source and run verification to demonstrate a revision request.
+5. Submit revised source and show criterion evidence, fingerprint, and security signals.
+6. Explain the independent release policy and dispute blocking.
+7. Capture only with explicit approval from the person operating the demo.
+
+Model responses are not guaranteed. Prepare honest complete/incomplete source
+fixtures and rehearse; do not weaken the policy to force an approval.
+
+## Current limitations
+
+- Source analysis does not execute or render a website or prove visual correctness.
+- AI confidence is model-reported, not calibrated correctness probability.
+- The workflow is currently owner-operated; separate client/freelancer roles and
+  freelancer payouts are not implemented.
+- Dispute resolution, authorization expiry, refunds/reversals, and interrupted
+  operation recovery remain incomplete.
+- Failed protected operations retain locks. Do not clear locks based on age or
+  blindly retry an uncertain capture.
+- Legacy projects without an owner stay inaccessible until ownership is reviewed.
+
+Database-hardening migration `20261022122800` was applied and verified on the
+hosted project. The SQL in `docs/sql/` is retained as a record; it is not run
+automatically by the app. See [database verification](docs/database-hardening.md).

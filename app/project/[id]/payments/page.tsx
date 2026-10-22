@@ -4,6 +4,7 @@ import PaymentProtectionBanner from "@/components/PaymentProtectionBanner";
 import PayPalCheckout from "@/components/PayPalCheckout";
 import ReleasePayment from "@/components/ReleasePayment";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireProjectAccess } from "@/lib/auth/project-access";
 
 type PageProps = {
   params: Promise<{
@@ -30,6 +31,8 @@ function formatStatus(status: string) {
 
 export default async function PaymentsPage({ params }: PageProps) {
   const { id } = await params;
+
+  await requireProjectAccess(id);
 
   const supabase = createAdminClient();
 

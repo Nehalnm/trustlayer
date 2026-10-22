@@ -44,9 +44,21 @@ export async function authorizePayPalOrder(orderId: string) {
   return result;
 }
 
-export async function captureAuthorizedPayPalPayment(authorizationId: string) {
+export async function captureAuthorizedPayPalPayment(
+  authorizationId: string,
+  requestId: string,
+) {
+  if (!authorizationId.trim()) {
+    throw new Error("Missing PayPal authorization ID.");
+  }
+
+  if (!requestId.trim() || requestId.length > 100) {
+    throw new Error("A valid PayPal idempotency key is required.");
+  }
+
   const { result } = await paymentsController.captureAuthorizedPayment({
     authorizationId,
+    paypalRequestId: requestId,
     prefer: "return=representation",
   });
 

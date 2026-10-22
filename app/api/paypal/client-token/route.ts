@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
+      return NextResponse.json({ error: "Sign in to initialize checkout." }, { status: 401 });
+    }
+
     const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
     const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
 
@@ -25,13 +32,14 @@ export async function GET() {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: "grant_type=client_credentials&response_type=client_token&intent=sdk_init",
+        cache: "no-store",
       },
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("PayPal client token error:", data);
+      console.error("PayPal client token request failed:", response.status);
 
       return NextResponse.json(
         { error: "Failed to generate PayPal client token" },
@@ -39,10 +47,14 @@ export async function GET() {
       );
     }
 
+    if (typeof data.access_token !== "string") {
+      throw new Error("PayPal returned no browser client token.");
+    }
+
     return NextResponse.json({
       accessToken: data.access_token,
       expiresIn: data.expires_in,
-    });
+    }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.error("Client token route error:", error);
 

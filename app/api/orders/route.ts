@@ -1,17 +1,9 @@
 import { NextResponse } from "next/server";
-import { createPayPalOrder } from "@/lib/paypal/orders";
 
+// Checkout must be attached to an authenticated milestone.
 export async function POST() {
-  try {
-    const orderId = await createPayPalOrder("9.99");
-
-    return NextResponse.json({ id: orderId });
-  } catch (error) {
-    console.error("PayPal create order error:", error);
-
-    return NextResponse.json(
-      { error: "Failed to create PayPal order" },
-      { status: 500 },
-    );
-  }
+  return NextResponse.json(
+    { error: "This legacy endpoint is retired. Use milestone checkout." },
+    { status: 410 },
+  );
 }

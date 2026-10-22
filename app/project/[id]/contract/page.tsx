@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireProjectAccess } from "@/lib/auth/project-access";
 
 type PageProps = {
   params: Promise<{
@@ -20,6 +21,8 @@ type ContractData = {
 
 export default async function ContractPage({ params }: PageProps) {
   const { id } = await params;
+
+  await requireProjectAccess(id);
 
   const supabase = createAdminClient();
 

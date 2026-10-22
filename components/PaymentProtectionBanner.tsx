@@ -113,7 +113,7 @@ export default function PaymentProtectionBanner({
 
             <p className="mt-4 text-[11px] leading-5 text-slate-500">
               Authorization protects the payment. Capture happens only after the
-              milestone passes TrustLayer's payment policy.
+              milestone passes TrustLayer&apos;s payment policy.
             </p>
           </div>
         </div>
