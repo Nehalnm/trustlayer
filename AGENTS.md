@@ -131,6 +131,15 @@ is implemented correctly.
 
 ## Current Work
 
+Update 24 October 2026: project creator is CLIENT; projects.freelancer_id is
+the assigned FREELANCER. Read access includes both; payment/verification APIs
+remain client-only. Submission is freelancer-only after assignment, with the
+unassigned single-account demo retained. Three service-role-only invoker RPCs
+atomically assign, submit, and manage mutual return-to-revision disputes.
+See docs/project-collaboration.md and migration 20261024042049. Legacy disputes
+without operation_lock_at cannot be auto-resolved. No freelancer payout support.
+The older audit checklist below is historical; verify source and the newer docs.
+
 We are auditing remaining privileged routes and project pages.
 
 Main project dashboard access checks have been added.

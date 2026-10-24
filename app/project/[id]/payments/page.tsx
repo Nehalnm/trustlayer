@@ -35,7 +35,8 @@ function formatStatus(status: string) {
 export default async function PaymentsPage({ params }: PageProps) {
   const { id } = await params;
 
-  await requireProjectAccess(id);
+  const { user, project: accessProject } = await requireProjectAccess(id);
+  const isClient = accessProject.created_by === user.id;
 
   const supabase = createAdminClient();
 
@@ -130,13 +131,13 @@ export default async function PaymentsPage({ params }: PageProps) {
                   </div>
                 </div>
 
-                {milestone.status === "PENDING" && (
+                {isClient && milestone.status === "PENDING" && (
                   <div className="mt-5 border-t border-white/10 pt-5">
                     <PayPalCheckout milestoneId={milestone.id} amount={Number(milestone.amount).toFixed(2)} />
                   </div>
                 )}
 
-                {milestone.status === "APPROVED" && (
+                {isClient && milestone.status === "APPROVED" && (
                   <div className="mt-5 border-t border-white/10 pt-5">
                     <ReleasePayment milestoneId={milestone.id} locked={Boolean(milestone.payment_release_locked_at)} />
                   </div>
@@ -153,7 +154,7 @@ export default async function PaymentsPage({ params }: PageProps) {
                     Payment released successfully.
                   </p>
                 )}
-                {milestone.paypal_order_id && <PaymentRecovery milestoneId={milestone.id} locked={Boolean(milestone.payment_release_locked_at) && milestone.status !== "PAID"} />}
+                {isClient && milestone.paypal_order_id && <PaymentRecovery milestoneId={milestone.id} locked={Boolean(milestone.payment_release_locked_at) && milestone.status !== "PAID"} />}
               </div>
             ))}
           </div>

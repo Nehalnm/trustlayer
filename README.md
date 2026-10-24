@@ -67,6 +67,9 @@ The build downloads Geist fonts from Google and requires internet access.
 
 ## Demo walkthrough
 
+Use the [demo kit](docs/demo/README.md) for a three-minute script, a copy-ready
+project brief, incomplete/complete HTML deliverables, and a rehearsal checklist.
+
 1. Sign in and create a small USD website project with specific source-verifiable criteria.
 2. Explain the generated scope, milestone amounts, and acceptance criteria.
 3. Authorize the chosen milestone using a Sandbox buyer.
@@ -80,6 +83,9 @@ fixtures and rehearse; do not weaken the policy to force an approval.
 
 ## Current limitations
 
+See [project roles and dispute resolution](docs/project-collaboration.md) for the
+permission matrix, applied migration, and two-account rehearsal instructions.
+
 The interface now uses the [dark design direction](docs/design-direction.md).
 Owner-initiated [payment reconciliation](docs/payment-recovery.md) can restore
 confirmed existing authorizations or captures. It never requests a new payment
@@ -87,9 +93,10 @@ and does not clear uncertain operation locks.
 
 - Source analysis does not execute or render a website or prove visual correctness.
 - AI confidence is model-reported, not calibrated correctness probability.
-- The workflow is currently owner-operated; separate client/freelancer roles and
-  freelancer payouts are not implemented.
-- Dispute resolution, authorization replacement, refunds/reversals, and general
+- Projects support a client and one assigned freelancer. Unassigned projects
+  retain single-account demo submissions; freelancer payouts are not implemented.
+- Disputes support mutual return to revision, requiring both participants.
+  Arbitration, authorization replacement, refunds/reversals, and general
   interrupted-operation lock recovery remain incomplete.
 - Failed protected operations retain locks. Do not clear locks based on age or
   blindly retry an uncertain capture.

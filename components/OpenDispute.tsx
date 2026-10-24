@@ -64,15 +64,15 @@ export default function OpenDispute({ milestoneId }: OpenDisputeProps) {
   return (
     <div className="mt-7 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-6">
       <div className="mb-5">
-        <p className="text-sm font-bold uppercase tracking-wide text-amber-700">
+        <p className="text-sm font-bold uppercase tracking-wide text-amber-300">
           Dispute protection
         </p>
 
-        <h3 className="mt-1 text-xl font-bold text-amber-950">
+        <h3 className="mt-1 text-xl font-bold text-amber-100">
           Open a dispute
         </h3>
 
-        <p className="mt-2 text-sm text-amber-800">
+        <p className="mt-2 text-sm text-amber-200">
           Raise a dispute if the submitted work does not match the agreed
           requirements or there is another issue with the milestone.
         </p>
@@ -82,7 +82,7 @@ export default function OpenDispute({ milestoneId }: OpenDisputeProps) {
         <div>
           <label
             htmlFor={`dispute-reason-${milestoneId}`}
-            className="mb-2 block text-sm font-semibold text-amber-950"
+            className="mb-2 block text-sm font-semibold text-amber-100"
           >
             Reason
           </label>
@@ -93,6 +93,9 @@ export default function OpenDispute({ milestoneId }: OpenDisputeProps) {
             onChange={(event) => setReason(event.target.value)}
             placeholder="Explain why you are opening this dispute..."
             rows={5}
+            required
+            minLength={10}
+            maxLength={4000}
             className="w-full rounded-xl border border-amber-400/20 bg-[#171a21] px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
           />
         </div>

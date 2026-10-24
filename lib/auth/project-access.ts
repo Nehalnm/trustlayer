@@ -12,9 +12,9 @@ export async function requireProjectAccess(projectId: string) {
 
   const { data: project, error } = await supabase
     .from("projects")
-    .select("id, created_by")
+    .select("id, created_by, freelancer_id")
     .eq("id", projectId)
-    .eq("created_by", user.id)
+    .or(`created_by.eq.${user.id},freelancer_id.eq.${user.id}`)
     .maybeSingle();
 
   if (error) throw new Error("Could not verify project access.");

@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import OpenDispute from "@/components/OpenDispute";
@@ -9,7 +9,10 @@ import PayPalCheckout from "@/components/PayPalCheckout";
 import ReleasePayment from "@/components/ReleasePayment";
 import PaymentRecovery from "@/components/PaymentRecovery";
 import VerifyMilestone from "@/components/VerifyMilestone";
-import { createClient as createUserClient } from "@/lib/supabase/server";
+import { requireProjectAccess } from "@/lib/auth/project-access";
+import { canSubmitWork, projectRole } from "@/lib/auth/project-role";
+import ProjectTeam from "@/components/ProjectTeam";
+import DisputeResolution, { type DisputeDetails } from "@/components/DisputeResolution";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type PageProps = {
@@ -202,34 +205,7 @@ function ProjectDescription({ description }: { description: string }) {
 export default async function ProjectPage({ params }: PageProps) {
   const { id } = await params;
 
-  // 1. Require an authenticated user.
-  const userSupabase = await createUserClient();
-
-  const {
-    data: { user },
-    error: authError,
-  } = await userSupabase.auth.getUser();
-
-  if (authError || !user) {
-    redirect("/login");
-  }
-
-  // 2. Check project access using the user's RLS permissions.
-  const { data: accessibleProject, error: accessError } = await userSupabase
-    .from("projects")
-    .select("id")
-    .eq("id", id)
-    .eq("created_by", user.id)
-    .maybeSingle();
-
-  if (accessError) {
-    console.error("Project access check failed:", accessError);
-    throw new Error("Could not verify project access.");
-  }
-
-  if (!accessibleProject) {
-    notFound();
-  }
+  const { user } = await requireProjectAccess(id);
 
   // 3. Only load privileged project data after access is verified.
   const supabase = createAdminClient();
@@ -268,6 +244,14 @@ export default async function ProjectPage({ params }: PageProps) {
     console.error("Activity loading error:", activityError);
   }
 
+  const role = projectRole(project, user.id);
+  if (!role) notFound();
+  const canSubmit = canSubmitWork(project, user.id);
+  const isClient = role === "CLIENT";
+  const { data: disputes, error: disputesError } = await supabase.from("disputes")
+    .select("id, milestone_id, reason, status, operation_lock_at, proposed_by, proposed_resolution")
+    .eq("project_id", id).neq("status", "RESOLVED");
+  if (disputesError) throw new Error("Could not load project disputes.");
   const projectMilestones = (milestones ?? []) as Milestone[];
   const events = (activityEvents ?? []) as ActivityEvent[];
   const contract = (project.contract ?? {}) as ContractData;
@@ -362,6 +346,7 @@ export default async function ProjectPage({ params }: PageProps) {
             </div>
           </section>
 
+          <ProjectTeam projectId={id} role={role} assigned={Boolean(project.freelancer_id)} />
           {/* Payment protection */}
           <div id="payment-protection" className="mb-9">
             <PaymentProtectionBanner
@@ -557,7 +542,7 @@ export default async function ProjectPage({ params }: PageProps) {
                         </div>
 
                         {/* PENDING */}
-                        {milestone.status === "PENDING" && (
+                        {isClient && milestone.status === "PENDING" && (
                           <section className="mt-8 border-t border-white/10 pt-7">
                             <div className="mb-5">
                               <h5 className="text-lg font-semibold">
@@ -583,11 +568,9 @@ export default async function ProjectPage({ params }: PageProps) {
                         {/* FUNDED */}
                         {milestone.status === "FUNDED" && (
                           <>
-                            <MilestoneSubmission milestoneId={milestone.id} />
+                            {canSubmit ? <MilestoneSubmission milestoneId={milestone.id} /> : <p className="mt-6 text-sm text-slate-400">Waiting for the assigned freelancer to submit work.</p>}
 
-                            <div className="mt-6">
-                              <OpenDispute milestoneId={milestone.id} />
-                            </div>
+
                           </>
                         )}
 
@@ -604,11 +587,11 @@ export default async function ProjectPage({ params }: PageProps) {
                             </p>
 
                             <div className="mt-5">
-                              <VerifyMilestone milestoneId={milestone.id} />
+                              {isClient ? <VerifyMilestone milestoneId={milestone.id} /> : <p className="mt-4 text-sm text-slate-400">Waiting for client verification.</p>}
                             </div>
 
                             <div className="mt-5">
-                              <OpenDispute milestoneId={milestone.id} />
+
                             </div>
                           </section>
                         )}
@@ -629,7 +612,7 @@ export default async function ProjectPage({ params }: PageProps) {
 
                         {/* REVISION REQUIRED */}
                         {milestone.status === "REVISION_REQUIRED" && (
-                          <MilestoneSubmission milestoneId={milestone.id} />
+                          canSubmit ? <MilestoneSubmission milestoneId={milestone.id} /> : <p className="mt-6 text-sm text-slate-400">Waiting for a revised submission from the freelancer.</p>
                         )}
 
                         {/* APPROVED */}
@@ -646,10 +629,10 @@ export default async function ProjectPage({ params }: PageProps) {
                             </p>
 
                             <div className="mt-6 flex flex-col gap-4 sm:flex-row">
-                            <ReleasePayment milestoneId={milestone.id} locked={Boolean(milestone.payment_release_locked_at)} />
-                            {milestone.paypal_order_id && <PaymentRecovery milestoneId={milestone.id} locked={Boolean(milestone.payment_release_locked_at)} />}
+                            {isClient && <ReleasePayment milestoneId={milestone.id} locked={Boolean(milestone.payment_release_locked_at)} />}
+                            {isClient && milestone.paypal_order_id && <PaymentRecovery milestoneId={milestone.id} locked={Boolean(milestone.payment_release_locked_at)} />}
 
-                              <OpenDispute milestoneId={milestone.id} />
+
                             </div>
                           </section>
                         )}
@@ -678,9 +661,12 @@ export default async function ProjectPage({ params }: PageProps) {
                             <p className="mt-2 text-sm leading-6 text-red-200">
                               Payment is blocked until the dispute is resolved.
                             </p>
+                            <DisputeResolution milestoneId={milestone.id} userId={user.id} assigned={Boolean(project.freelancer_id)} dispute={(disputes ?? []).find(d => d.milestone_id === milestone.id) as DisputeDetails | undefined} />
                           </section>
                         )}
                       </div>
+
+                      {!["PAID", "DISPUTED", "PENDING"].includes(milestone.status) && <OpenDispute milestoneId={milestone.id} />}
 
                       {/* Verification */}
                       <MilestoneInsights

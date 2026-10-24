@@ -186,3 +186,34 @@ test("capture is never requested when the durable intent cannot be recorded", as
   assert.equal(h.captures(), 0);
   assert.ok(h.milestone.payment_release_locked_at);
 });
+
+test("freelancer membership does not permit client verification or capture", async () => {
+  const h = releaseHarness();
+  h.tables.projects[0].freelancer_id = "freelancer";
+  h.dependencies["@/lib/supabase/server"] = { createClient: async () => ({
+    from: h.dependencies["@/lib/supabase/admin"].createAdminClient().from,
+    auth: { getUser: async () => ({ data: { user: { id: "freelancer" } }, error: null }) },
+  }) };
+  assert.equal((await h.loadRoute("verify")()).status, 403);
+  assert.equal((await h.loadRoute("release")()).status, 403);
+  assert.equal(h.captures(), 0);
+  assert.equal(h.calls(), 0);
+});
+
+for (const route of ["order", "authorize"]) {
+  test(`freelancer cannot invoke PayPal ${route}`, async () => {
+    const h = harness();
+    let providerCalls = 0;
+    h.tables.projects[0].freelancer_id = "freelancer";
+    h.dependencies["@/lib/supabase/server"] = { createClient: async () => ({
+      from: h.dependencies["@/lib/supabase/admin"].createAdminClient().from,
+      auth: { getUser: async () => ({ data: { user: { id: "freelancer" } }, error: null }) },
+    }) };
+    h.dependencies["@/lib/paypal/orders"] = {
+      createPayPalOrder: async () => { providerCalls++; },
+      authorizePayPalOrder: async () => { providerCalls++; },
+    };
+    assert.equal((await h.loadRoute(route)()).status, 403);
+    assert.equal(providerCalls, 0);
+  });
+}
