@@ -1,0 +1,11 @@
+Build a single-page HTML/CSS landing page for FocusFlow, a fictional focus timer product. Total budget: USD 10. Deadline: 2 days. Use one delivery milestone if possible. The deliverable is one self-contained HTML source file with embedded CSS, with no backend, external libraries, images, forms, or JavaScript required.
+
+Acceptance criteria:
+1. A semantic navigation element contains working in-page links to Features and Pricing, with matching section IDs.
+2. A hero contains an h1 naming FocusFlow and a call-to-action link to the Pricing section.
+3. A Features section describes exactly three features: Focus timer, Session history, and Break reminders.
+4. A Pricing section contains two named plans: Starter at $0/month and Pro at $9/month.
+5. Embedded CSS includes a media query that changes the feature and pricing grids to a single column on narrow screens.
+6. A semantic footer includes the text "FocusFlow demo" and a working in-page link to the top of the page.
+
+Evaluate only these source-verifiable requirements. This is a fictional hackathon sample; no real customer testimonials, payment collection, hosting, or production deployment are part of the deliverable.

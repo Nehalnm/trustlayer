@@ -70,7 +70,7 @@ export async function GET(
         .from("projects")
         .select("id")
         .eq("id", milestone.project_id)
-        .eq("created_by", user.id)
+        .or(`created_by.eq.${user.id},freelancer_id.eq.${user.id}`)
         .maybeSingle();
 
     if (projectAccessError) {

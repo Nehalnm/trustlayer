@@ -12,8 +12,8 @@ export default async function ProjectsPage() {
   if (authError || !user) redirect("/login");
 
   const { data: projects, error } = await supabase.from("projects")
-    .select("id, title, currency, total_amount, status, created_at")
-    .eq("created_by", user.id).order("created_at", { ascending: false });
+    .select("id, title, currency, total_amount, status, created_at, created_by, freelancer_id")
+    .or(`created_by.eq.${user.id},freelancer_id.eq.${user.id}`).order("created_at", { ascending: false });
   if (error) throw new Error("Could not load your projects. Please retry.");
 
   return <main className="min-h-screen bg-[#0d0f13] px-5 py-10 text-slate-100 sm:px-8">
@@ -31,7 +31,7 @@ export default async function ProjectsPage() {
       </div>
       {projects?.length ? <div className="grid gap-5 md:grid-cols-2">
         {projects.map((project) => <Link key={project.id} href={`/project/${project.id}`} className="tl-surface group p-7 transition hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4">
-          <p className="text-xs uppercase tracking-wide text-[#969eaf]">{project.status.replaceAll("_", " ")}</p>
+          <p className="text-xs uppercase tracking-wide text-[#969eaf]">{project.created_by === user.id ? "Client" : "Freelancer"} ? {project.status.replaceAll("_", " ")}</p>
           <h2 className="mt-4 text-xl font-semibold tracking-tight">{project.title}</h2>
           <div className="mt-8 flex items-center justify-between border-t border-white/10 pt-4">
             <span className="font-medium">{project.currency} {Number(project.total_amount).toFixed(2)}</span>

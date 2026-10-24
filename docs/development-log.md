@@ -121,6 +121,43 @@ automatically clears uncertain locks or retries captures. Separate roles,
 dispute resolution, refund/reversal lifecycle, and approved Sandbox end-to-end
 tests remain pending. See `payment-recovery.md` and `design-direction.md`.
 
+## 2026-10-24 — Project participants and mutual dispute resolution
+
+Status: implemented locally; hosted migration applied; interactive rehearsal pending.
+Issue: https://github.com/Nehalnm/trustlayer/issues/1
+
+### Problem
+
+Project ownership previously covered both sides of the workflow, and disputes
+had no safe user-facing resolution. Separate participants must not inherit
+payment authority simply because they can read project data.
+
+### Changes
+
+- One client and one assigned confirmed freelancer per project, with participant
+  RLS reads and client-only payment/verification operations.
+- Freelancer submissions after assignment; existing unassigned demo flow retained.
+- Atomic submissions, assignment, and two-person return-to-revision resolution.
+- Dispute-owned locks, approval invalidation, and transactional activity history.
+- Team and resolution controls, permission documentation, and demo fixtures/script.
+- Hosted migration `20261024042049` applied without changing existing records.
+
+### Validation
+
+56 automated tests pass. Production build passes; lint has zero errors and three
+existing webhook warnings. Postgres integration assertions passed with actual
+service/authenticated roles and all fixture data rolled back. Browser visual QA
+and a two-account interactive rehearsal remain pending. No PayPal calls were
+made during implementation. Separately, the user reported a successful prior
+Sandbox demo: 1/7 incomplete criteria, 7/7 after revision, then Paid with capture
+and release events on 24 October 2026.
+
+### Remaining work
+
+Freelancer payouts, invitations/acceptance, assignment replacement, contested
+arbitration, refunds/voids, and legacy uncertain lock recovery remain incomplete.
+See `project-collaboration.md` for behavior and two-account rehearsal steps.
+
 ## Entry template
 
 ```markdown
